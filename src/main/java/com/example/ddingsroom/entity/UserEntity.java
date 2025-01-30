@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Setter
@@ -16,9 +18,12 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
+    private String email;
     private String username;
     private String password;
-
+    private String age;
+    private String studentNumber;
     private String role;
+    private String state;
+    private LocalDateTime registrationDate;
 }
