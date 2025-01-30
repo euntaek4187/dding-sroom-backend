@@ -69,7 +69,6 @@ public class SecurityConfig {
         //csrf disable
         http
                 .csrf((auth) -> auth.disable());
-
         //From 로그인 방식 disable
         http
                 .formLogin((auth) -> auth.disable());
@@ -81,7 +80,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll()
+                        .requestMatchers("/login", "/", "/join", "/user/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated()); // 나머지는 그냥 다 로그인 해야 접근 가능하게
