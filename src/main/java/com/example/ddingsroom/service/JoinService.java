@@ -1,8 +1,5 @@
 package com.example.ddingsroom.service;
-import com.example.ddingsroom.dto.CodeSendDTO;
-import com.example.ddingsroom.dto.CodeVerifyDTO;
-import com.example.ddingsroom.dto.JoinDTO;
-import com.example.ddingsroom.dto.SignUpDTO;
+import com.example.ddingsroom.dto.*;
 import com.example.ddingsroom.entity.UserEntity;
 import com.example.ddingsroom.entity.VerificationCode;
 import com.example.ddingsroom.repository.UserRepository;
@@ -105,5 +102,16 @@ public class JoinService {
         newUser.setRegistrationDate(LocalDateTime.now());
         userRepository.save(newUser);
         return ResponseEntity.ok("회원가입이 완료되었습니다.");
+    }
+    public ResponseEntity<String> modifyPassword(ModifyPasswordDTO modifyPasswordDTO) {
+        boolean emailExists = userRepository.existsByEmail(modifyPasswordDTO.getEmail());
+        if (!emailExists) return ResponseEntity.badRequest().body("존재하지 않는 email 입니다.");
+        Optional<UserEntity> userEntityOptional = userRepository.findByEmail(modifyPasswordDTO.getEmail());
+        if (userEntityOptional.isPresent()) {
+            UserEntity user = userEntityOptional.get();
+            user.setPassword(bCryptPasswordEncoder.encode(modifyPasswordDTO.getPassword()));
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok("비밀번호 재설정이 완료되었습니다.");
     }
 }
