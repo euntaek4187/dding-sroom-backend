@@ -8,11 +8,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.List;
+
 @Configuration
 public class SwaggerConfig {
 
     @Bean
-    @Profile("!prod")
     public OpenAPI openAPI() {
         Info info = new Info()
                 .title("My Project API 명세서")
@@ -30,6 +31,9 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(info)
+                .servers(List.of(
+                        new io.swagger.v3.oas.models.servers.Server().url("https://ddingsroomserver.click:8443")
+                ))
                 .components(new Components().addSecuritySchemes("Authorization", securityScheme))
                 .addSecurityItem(securityRequirement);
     }
