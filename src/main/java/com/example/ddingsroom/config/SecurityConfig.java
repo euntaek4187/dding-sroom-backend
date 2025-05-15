@@ -1,10 +1,10 @@
 package com.example.ddingsroom.config;
 
-import com.example.ddingsroom.jwt.CustomLogoutFilter;
-import com.example.ddingsroom.jwt.JWTFilter;
-import com.example.ddingsroom.jwt.JWTUtil;
-import com.example.ddingsroom.jwt.LoginFilter;
-import com.example.ddingsroom.repository.RefreshRepository;
+import com.example.ddingsroom.user.jwt.CustomLogoutFilter;
+import com.example.ddingsroom.user.jwt.JWTFilter;
+import com.example.ddingsroom.user.jwt.JWTUtil;
+import com.example.ddingsroom.user.jwt.LoginFilter;
+import com.example.ddingsroom.user.repository.RefreshRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -82,7 +82,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/", "/join", "/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/reissue", "/api/reservations/**").permitAll()
                         .anyRequest().authenticated()); // 나머지는 그냥 다 로그인 해야 접근 가능하게
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         //JWTFilter 등록
