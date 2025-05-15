@@ -68,4 +68,14 @@ public class ReservationController {
                 response.getReservations() != null ? response.getReservations().size() : 0);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/all-reservation")
+    public ResponseEntity<ReservationResponseDTO> getAllReservations() {
+        logger.info("전체 예약 조회 요청");
+
+        ReservationResponseDTO response = reservationService.getAllReservations();
+
+        logger.info("전체 예약 조회 완료: count={}",
+                response.getReservations() != null ? response.getReservations().size() : 0);
+        return ResponseEntity.ok(response);
+    }
 }

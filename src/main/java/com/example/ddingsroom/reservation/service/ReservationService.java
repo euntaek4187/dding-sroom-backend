@@ -176,4 +176,27 @@ public class ReservationService {
             return responseDTO;
         }
     }
+    @Transactional(readOnly = true)
+    public ReservationResponseDTO getAllReservations() {
+        try {
+            List<ReservationEntity> reservationEntities = reservationRepository.findAll();
+
+            List<ReservationResponseDTO.ReservationDTO> reservationDTOs = reservationEntities.stream()
+                    .map(ReservationResponseDTO.ReservationDTO::fromEntity)
+                    .collect(Collectors.toList());
+
+            ReservationResponseDTO responseDTO = new ReservationResponseDTO();
+            responseDTO.setMessage("데이터 조회가 성공적으로 진행되었습니다.");
+            responseDTO.setReservations(reservationDTOs);
+
+            return responseDTO;
+        } catch (Exception e) {
+            logger.error("전체 예약 조회 중 오류 발생: {}", e.getMessage(), e);
+            ReservationResponseDTO responseDTO = new ReservationResponseDTO();
+            responseDTO.setMessage("예약 조회 중 오류가 발생했습니다. 나중에 다시 시도해주세요.");
+            responseDTO.setReservations(List.of());
+            return responseDTO;
+        }
+    }
+
 }
