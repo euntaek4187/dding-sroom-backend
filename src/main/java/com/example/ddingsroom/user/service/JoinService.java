@@ -107,7 +107,7 @@ public class JoinService {
     public ResponseEntity<String> modifyPassword(ModifyPasswordDTO modifyPasswordDTO) {
         boolean emailExists = userRepository.existsByEmail(modifyPasswordDTO.getEmail());
         if (!emailExists) return ResponseEntity.badRequest().body("존재하지 않는 email 입니다.");
-        Optional<UserEntity> userEntityOptional = userRepository.findByEmail(modifyPasswordDTO.getEmail());
+        Optional<UserEntity> userEntityOptional = Optional.ofNullable(userRepository.findByEmail(modifyPasswordDTO.getEmail()));
         if (userEntityOptional.isPresent()) {
             UserEntity user = userEntityOptional.get();
             user.setPassword(bCryptPasswordEncoder.encode(modifyPasswordDTO.getPassword()));

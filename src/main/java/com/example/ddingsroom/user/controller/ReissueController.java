@@ -33,16 +33,18 @@ public class ReissueController {
         //get refresh token
         String refresh = null;
         Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return new ResponseEntity<>("No cookies found", HttpStatus.BAD_REQUEST);
+        }
+
         for (Cookie cookie : cookies) {
-
             if (cookie.getName().equals("refresh")) {
-
                 refresh = cookie.getValue();
             }
         }
 
         if (refresh == null) {
-
             //response status code
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
         }
@@ -51,7 +53,6 @@ public class ReissueController {
         try {
             jwtUtil.isExpired(refresh);
         } catch (ExpiredJwtException e) {
-
             //response status code
             return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
         }
@@ -60,7 +61,6 @@ public class ReissueController {
         String category = jwtUtil.getCategory(refresh);
 
         if (!category.equals("refresh")) {
-
             //response status code
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
@@ -72,16 +72,19 @@ public class ReissueController {
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
+        // 토큰에서 모든 필요한 정보 추출
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
+        int id = jwtUtil.getId(refresh);
+        String email = jwtUtil.getEmail(refresh);
 
         //make new JWT
-        String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
-        String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        String newAccess = jwtUtil.createJwt("access", username, role, id, email, 600000L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, id, email, 86400000L);
 
         //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
         refreshRepository.deleteByRefresh(refresh);
-        addRefreshEntity(username, newRefresh, 86400000L);
+        addRefreshEntity(email, newRefresh, 86400000L);
 
         //response
         response.setHeader("access", newAccess);
@@ -89,8 +92,8 @@ public class ReissueController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    private Cookie createCookie(String key, String value) {
 
+    private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(24*60*60);
         //cookie.setSecure(true);
@@ -99,12 +102,12 @@ public class ReissueController {
 
         return cookie;
     }
-    private void addRefreshEntity(String username, String refresh, Long expiredMs) {
 
+    private void addRefreshEntity(String email, String refresh, Long expiredMs) {
         Date date = new Date(System.currentTimeMillis() + expiredMs);
 
         RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setUsername(username);
+        refreshEntity.setUsername(email);
         refreshEntity.setRefresh(refresh);
         refreshEntity.setExpiration(date.toString());
 
