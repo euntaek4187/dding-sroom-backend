@@ -1,5 +1,5 @@
 package com.example.ddingsroom.user.controller;
-
+import com.example.ddingsroom.user.dto.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,16 +15,21 @@ import java.util.Iterator;
 public class MainController {
     @GetMapping("/")
     public String mainP() {
-
-        // 이름 가져오기
-        String name = SecurityContextHolder.getContext().getAuthentication().getName();
-        // 역할 가져오기
+        // 인증 객체 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // 사용자 상세 정보 추출
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        int id = userDetails.getUserEntity().getId();
+        String email = userDetails.getUserEntity().getEmail();
+
+        // 역할 정보 추출
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iter = authorities.iterator();
         GrantedAuthority auth = iter.next();
         String role = auth.getAuthority();
 
-        return "main Controller: " + name + " role: "+ role;
+        return "User ID: " + id + ", Username: " + username + ", Email: " + email + ", Role: " + role;
     }
 }
