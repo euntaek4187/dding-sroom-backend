@@ -13,7 +13,7 @@ import java.util.Iterator;
 @ResponseBody
 @Controller
 public class MainController {
-    @GetMapping("/")
+    @GetMapping("/get-info-test")
     public String mainP() {
         // 인증 객체 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
