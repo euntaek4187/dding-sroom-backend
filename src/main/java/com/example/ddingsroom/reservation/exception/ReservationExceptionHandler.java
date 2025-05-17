@@ -12,7 +12,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.format.DateTimeParseException;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = "com.example.ddingsroom.reservation.controller")
 public class ReservationExceptionHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(ReservationExceptionHandler.class);
