@@ -16,6 +16,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true)
+                .exposedHeaders("Authorization", "access", "Access")
                 .maxAge(3600);
 
     }
