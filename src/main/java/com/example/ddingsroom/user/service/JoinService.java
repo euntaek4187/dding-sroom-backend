@@ -208,4 +208,56 @@ public class JoinService {
     private boolean isValidEmail(String email) {
         return pattern.matcher(email).matches();
     }
+
+    public ResponseEntity<?> getMyPage(Integer userId) {
+        try {
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
+            }
+
+            if (userId <= 0) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 사용자 ID를 입력해주세요."));
+            }
+
+            Optional<UserEntity> userEntityOptional = userRepository.findById(userId);
+
+            if (userEntityOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            UserEntity userEntity = userEntityOptional.get();
+
+            MyPageDTO myPageDTO = new MyPageDTO(userEntity);
+
+            if (myPageDTO.getEmail() == null) {
+                myPageDTO.setEmail("");
+            }
+            if (myPageDTO.getUsername() == null) {
+                myPageDTO.setUsername("");
+            }
+            if (myPageDTO.getAge() == null) {
+                myPageDTO.setAge("");
+            }
+            if (myPageDTO.getStudentNumber() == null) {
+                myPageDTO.setStudentNumber("");
+            }
+            if (myPageDTO.getRole() == null) {
+                myPageDTO.setRole("ROLE_USER");
+            }
+            if (myPageDTO.getState() == null) {
+                myPageDTO.setState("normal");
+            }
+            if (myPageDTO.getRegistrationDate() == null) {
+                myPageDTO.setRegistrationDate(LocalDateTime.now());
+            }
+            return ResponseEntity.ok(myPageDTO);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDTO("올바른 사용자 ID 형식이 아닙니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("마이페이지 조회 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
 }

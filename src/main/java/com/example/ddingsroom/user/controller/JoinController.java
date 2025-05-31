@@ -43,4 +43,9 @@ public class JoinController {
     public ResponseEntity<ResponseDTO> signUp(@RequestBody SignUpDTO signUpDTO) {
         return joinService.signUp(signUpDTO);
     }
+
+    @GetMapping("/mypage/{userId}")
+    public ResponseEntity<?> getMyPage(@PathVariable Integer userId) {
+        return joinService.getMyPage(userId);
+    }
 }
