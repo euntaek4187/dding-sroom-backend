@@ -2,14 +2,22 @@ package com.example.ddingsroom.suggest_post.service;
 
 import com.example.ddingsroom.suggest_post.dto.SuggestPostCreateRequestDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostDeleteRequestDTO;
+import com.example.ddingsroom.suggest_post.dto.SuggestPostResponseDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
 import com.example.ddingsroom.suggest_post.util.Category;
 import com.example.ddingsroom.suggest_post.util.Location;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SuggestPostSevice {
@@ -86,5 +94,36 @@ public class SuggestPostSevice {
         }
 
         suggestPostRepository.delete(existingPost);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SuggestPostResponseDTO> retrieveSuggestPosts(
+            Optional<Long> suggestId,
+            Optional<Long> userId,
+            Optional<String> categoryName) {
+
+        Specification<SuggestPostEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            suggestId.ifPresent(id -> predicates.add(cb.equal(root.get("id"), id)));
+            userId.ifPresent(id -> predicates.add(cb.equal(root.get("userId"), id)));
+
+            categoryName.ifPresent(catName -> {
+                Category categoryEnum = Category.fromName(catName);
+                if (categoryEnum == null) {
+                    throw new IllegalArgumentException("유효하지 않은 검색 카테고리 값입니다: '" + catName +
+                            "'. 유효한 값: " + String.join(", ", Category.getAllNames()));
+                }
+                predicates.add(cb.equal(root.get("category"), categoryEnum.getValue()));
+            });
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        List<SuggestPostEntity> entities = suggestPostRepository.findAll(spec);
+
+        return entities.stream()
+                .map(SuggestPostResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }

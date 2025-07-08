@@ -118,6 +118,8 @@ public class SuggestPostEntity {
         return this.createdAt;
     }
 
+    public LocalDateTime getUpdatedAt(){ return this.updatedAt; }
+
     @Override
     public String toString() {
         return "SuggestPost{"+
