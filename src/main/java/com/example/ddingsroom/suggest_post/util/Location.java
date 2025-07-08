@@ -1,6 +1,7 @@
 package com.example.ddingsroom.suggest_post.util;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,5 +45,9 @@ public enum Location {
 
     public static boolean isValidName(String name) {
         return NAME_MAP.containsKey(name);
+    }
+
+    public static List<String> getAllNames() {
+        return Arrays.stream(Location.values()).map(Location::getName).collect(Collectors.toList());
     }
 }
