@@ -1,6 +1,7 @@
 package com.example.ddingsroom.suggest_post.service;
 
-import com.example.ddingsroom.suggest_post.dto.SuggestPostDTO;
+import com.example.ddingsroom.suggest_post.dto.SuggestPostCreateRequestDTO;
+import com.example.ddingsroom.suggest_post.dto.SuggestPostDeleteRequestDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
@@ -9,9 +10,6 @@ import com.example.ddingsroom.suggest_post.util.Location;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @Service
 public class SuggestPostSevice {
@@ -41,7 +39,7 @@ public class SuggestPostSevice {
     }
 
     @Transactional
-    public SuggestPostEntity createSuggestPost(@Valid SuggestPostDTO request) {
+    public SuggestPostEntity createSuggestPost(@Valid SuggestPostCreateRequestDTO request) {
 
         int categoryValue = getCategoryValue(request.getCategory());
         int locationValue = getLocationValue(request.getLocation());
@@ -76,5 +74,17 @@ public class SuggestPostSevice {
         existingPost.setAnswered(request.getIsAnswered());
 
         return suggestPostRepository.save(existingPost);
+    }
+
+    @Transactional
+    public void deleteSuggestPost(Long suggestId, SuggestPostDeleteRequestDTO request) {
+        SuggestPostEntity existingPost = suggestPostRepository.findById(suggestId)
+                .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + suggestId));
+
+        if(!existingPost.getUserId().equals(request.getUserId())){
+            throw new IllegalArgumentException("게시물 삭제 권한이 없습니다. 사용자 ID: " + request.getUserId());
+        }
+
+        suggestPostRepository.delete(existingPost);
     }
 }

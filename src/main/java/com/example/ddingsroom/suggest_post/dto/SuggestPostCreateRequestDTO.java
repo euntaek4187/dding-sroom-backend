@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class SuggestPostDTO {
+public class SuggestPostCreateRequestDTO {
 
     @NotNull(message = "사용자 ID는 필수입니다")
     private Long userId;
