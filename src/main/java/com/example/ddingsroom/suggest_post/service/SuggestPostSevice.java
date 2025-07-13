@@ -100,7 +100,12 @@ public class SuggestPostSevice {
     public List<SuggestPostResponseDTO> retrieveSuggestPosts(
             Optional<Long> suggestId,
             Optional<Long> userId,
-            Optional<String> categoryName) {
+            Optional<String> categoryNameStr,
+            Optional<String> locationNameStr,
+            Optional<Boolean> isAnswered) {
+
+        Optional<Integer> categoryValueOpt = categoryNameStr.map(this::getCategoryValue);
+        Optional<Integer> locationValueOpt = locationNameStr.map(this::getLocationValue);
 
         Specification<SuggestPostEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -108,14 +113,9 @@ public class SuggestPostSevice {
             suggestId.ifPresent(id -> predicates.add(cb.equal(root.get("id"), id)));
             userId.ifPresent(id -> predicates.add(cb.equal(root.get("userId"), id)));
 
-            categoryName.ifPresent(catName -> {
-                Category categoryEnum = Category.fromName(catName);
-                if (categoryEnum == null) {
-                    throw new IllegalArgumentException("유효하지 않은 검색 카테고리 값입니다: '" + catName +
-                            "'. 유효한 값: " + String.join(", ", Category.getAllNames()));
-                }
-                predicates.add(cb.equal(root.get("category"), categoryEnum.getValue()));
-            });
+            categoryValueOpt.ifPresent(catVal -> predicates.add(cb.equal(root.get("category"), catVal)));
+            locationValueOpt.ifPresent(locVal -> predicates.add(cb.equal(root.get("location"), locVal)));
+            isAnswered.ifPresent(answered -> predicates.add(cb.equal(root.get("isAnswered"), answered)));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

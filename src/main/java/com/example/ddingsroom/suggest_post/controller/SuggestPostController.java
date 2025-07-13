@@ -96,13 +96,15 @@ public class SuggestPostController {
     public ResponseEntity<Map<String, Object>> retrieveSuggestPosts(
             @RequestParam Optional<Long> suggestId,
             @RequestParam Optional<Long> userId,
-            @RequestParam Optional<String> category) {
+            @RequestParam Optional<String> category,
+            @RequestParam Optional<String> location,
+            @RequestParam Optional<Boolean> isAnswered) {
 
         Map<String, Object> response = new HashMap<>();
         try {
-            List<SuggestPostResponseDTO> suggestions = suggestPostSevice.retrieveSuggestPosts(suggestId, userId, category);
+            List<SuggestPostResponseDTO> suggestions = suggestPostSevice.retrieveSuggestPosts(suggestId, userId, category, location, isAnswered);
 
-            if (suggestions.isEmpty() && (suggestId.isPresent() || userId.isPresent() || category.isPresent())) {
+            if (suggestions.isEmpty() && (suggestId.isPresent() || userId.isPresent() || category.isPresent() || location.isPresent() || isAnswered.isPresent())) {
                 response.put("message", "검색 조건에 해당하는 건의를 찾을 수 없습니다.");
             } else if (suggestions.isEmpty()) {
                 response.put("message", "등록된 건의가 없습니다.");
