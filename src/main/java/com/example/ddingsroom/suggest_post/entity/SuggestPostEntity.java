@@ -1,8 +1,10 @@
 package com.example.ddingsroom.suggest_post.entity;
 
+import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "suggest_post")
@@ -36,6 +38,9 @@ public class SuggestPostEntity {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToOne(mappedBy = "suggestPost", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private SuggestCommentEntity comment;
+
     public SuggestPostEntity() {
 
     }
@@ -57,10 +62,10 @@ public class SuggestPostEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+//    @PreUpdate
+//    protected void onUpdate() {
+//        this.updatedAt = LocalDateTime.now();
+//    }
 
     public Long getId(){
         return this.id;
@@ -79,7 +84,10 @@ public class SuggestPostEntity {
     }
 
     public void setSuggestTitle(String suggestTitle){
-        this.suggestTitle = suggestTitle;
+        if (!this.suggestTitle.equals(suggestTitle)) {
+            this.suggestTitle = suggestTitle;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public String getSuggestContent(){
@@ -87,7 +95,10 @@ public class SuggestPostEntity {
     }
 
     public void setSuggestContent(String suggestContent){
-        this.suggestContent = suggestContent;
+        if (!this.suggestContent.equals(suggestContent)) {
+            this.suggestContent = suggestContent;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public int getCategory(){
@@ -95,7 +106,10 @@ public class SuggestPostEntity {
     }
 
     public void setCategory(int category){
-        this.category = category;
+        if (this.category != category) {
+            this.category = category;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public int getLocation(){
@@ -103,7 +117,10 @@ public class SuggestPostEntity {
     }
 
     public void setLocation(int location){
-        this.location = location;
+        if (this.location != location) {
+            this.location = location;
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public boolean isAnswered(){
@@ -119,6 +136,24 @@ public class SuggestPostEntity {
     }
 
     public LocalDateTime getUpdatedAt(){ return this.updatedAt; }
+
+    public SuggestCommentEntity getComment(){
+        return comment;
+    }
+
+    public void setComment(SuggestCommentEntity comment){
+        this.comment = comment;
+        if (comment != null) {
+            comment.setSuggestPost(this);
+        }
+    }
+
+    public void removeComment(){
+        if (this.comment != null){
+            this.comment.setSuggestPost(null);
+            this.comment = null;
+        }
+    }
 
     @Override
     public String toString() {
