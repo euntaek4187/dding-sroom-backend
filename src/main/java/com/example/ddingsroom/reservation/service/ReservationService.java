@@ -104,10 +104,6 @@ public class ReservationService {
             reservation.setEndTime(requestDTO.getReservationEndTime());
             reservation.setStatus("RESERVED");
             
-            LocalDateTime now = LocalDateTime.now();
-            reservation.setCreatedAt(now);
-            reservation.setUpdatedAt(now);
-            
             reservationRepository.save(reservation);
             
             return new BaseResponseDTO("예약이 성공적으로 완료되었습니다.");
@@ -132,7 +128,6 @@ public class ReservationService {
             }
             
             reservation.setStatus("CANCELLED");
-            reservation.setUpdatedAt(LocalDateTime.now());
             reservationRepository.save(reservation);
             
             return new BaseResponseDTO("예약취소가 잘 되었습니다.");
