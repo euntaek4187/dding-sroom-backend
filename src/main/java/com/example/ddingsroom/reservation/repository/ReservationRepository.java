@@ -2,6 +2,7 @@ package com.example.ddingsroom.reservation.repository;
 import com.example.ddingsroom.reservation.entity.ReservationEntity;
 import com.example.ddingsroom.reservation.entity.RoomEntity;
 import com.example.ddingsroom.user.entity.UserEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -31,4 +32,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
             @Param("roomId") int roomId,
             @Param("startTime") LocalDateTime startTime);
     List<ReservationEntity> findByUserOrderByCreatedAtDesc(UserEntity user, Pageable pageable);
+
+    @Transactional
+    void deleteByUser(UserEntity user);
 }

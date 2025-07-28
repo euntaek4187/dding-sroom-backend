@@ -48,4 +48,9 @@ public class JoinController {
     public ResponseEntity<?> getMyPage(@PathVariable Integer userId) {
         return joinService.getMyPage(userId);
     }
+
+    @DeleteMapping("/delete/{userId}")
+    public ResponseEntity<ResponseDTO> deleteUser(@PathVariable Integer userId) {
+        return joinService.deleteUser(userId);
+    }
 }
