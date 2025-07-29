@@ -267,24 +267,24 @@ public class JoinService {
     }
 
     @Transactional
-    public ResponseEntity<ResponseDTO> deleteUser(Integer userId) {
+    public ResponseEntity<ResponseDTO> deleteUser(String email) {
         try {
-            if (userId == null || userId <= 0) {
-                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 사용자 ID를 입력해주세요."));
+            if (!StringUtils.hasText(email)) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
+            }
+            if (!isValidEmail(email)) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 이메일 형식이 아닙니다."));
             }
 
-            Optional<UserEntity> userOptional = userRepository.findById(userId);
-            if (userOptional.isEmpty()) {
+            UserEntity user = userRepository.findByEmail(email);
+            if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
             }
 
-            UserEntity user = userOptional.get();
-            String userEmail = user.getEmail();
-
             reservationRepository.deleteByUser(user);
-            refreshRepository.deleteByUsername(userEmail);
-            verificationCodeRepository.findByEmail(userEmail).ifPresent(verificationCodeRepository::delete);
+            refreshRepository.deleteByUsername(email);
+            verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
 
             userRepository.delete(user);
 
