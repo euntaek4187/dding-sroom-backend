@@ -83,7 +83,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/", "/join", "/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
+                        .requestMatchers("/admin/**").hasRole("ADMIN") // /admin 하위 모든 경로는 ADMIN 역할 필요
                         .requestMatchers("/reissue", "/api/reservations/**").permitAll()
                         .anyRequest().authenticated()); // 나머지는 그냥 다 로그인 해야 접근 가능하게
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
