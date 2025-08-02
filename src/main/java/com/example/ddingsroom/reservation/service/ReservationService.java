@@ -44,11 +44,23 @@ public class ReservationService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public BaseResponseDTO createReservation(ReservationRequestDTO requestDTO) {
         try {
-            UserEntity user = userRepository.findById(requestDTO.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+            UserEntity user;
+            try {
+                user = userRepository.findById(requestDTO.getUserId())
+                        .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+            } catch (EntityNotFoundException e) {
+                logger.warn("존재하지 않는 사용자 ID로 예약 시도: userId={}", requestDTO.getUserId());
+                return new BaseResponseDTO("해당 사용자가 존재하지 않습니다.");
+            }
             
-            RoomEntity room = roomRepository.findById(requestDTO.getRoomId())
-                    .orElseThrow(() -> new EntityNotFoundException("스터디룸을 찾을 수 없습니다."));
+            RoomEntity room;
+            try {
+                room = roomRepository.findById(requestDTO.getRoomId())
+                        .orElseThrow(() -> new EntityNotFoundException("해당 스터디룸이 존재하지 않습니다."));
+            } catch (EntityNotFoundException e) {
+                logger.warn("존재하지 않는 룸 ID로 예약 시도: roomId={}", requestDTO.getRoomId());
+                return new BaseResponseDTO("해당 스터디룸이 존재하지 않습니다.");
+            }
             
             if (!"IDLE".equals(room.getRoomStatus())) {
                 return new BaseResponseDTO("현재 사용이 불가능한 스터디룸입니다.");
@@ -61,6 +73,33 @@ public class ReservationService {
 
             if (requestDTO.getReservationStartTime().isBefore(LocalDateTime.now())) {
                 return new BaseResponseDTO("과거 시간으로 예약할 수 없습니다.");
+            }
+
+            // 동일 사용자의 동일 시간대 다른 룸 예약 방지 검증
+            logger.info("사용자 중복 예약 검증 시작: userId={}, roomId={}, startTime={}, endTime={}", 
+                    user.getId(), requestDTO.getRoomId(), requestDTO.getReservationStartTime(), requestDTO.getReservationEndTime());
+            
+            List<ReservationEntity> userOverlappingReservations;
+            try {
+                userOverlappingReservations = reservationRepository.findUserOverlappingReservations(
+                        user,
+                        requestDTO.getReservationStartTime(),
+                        requestDTO.getReservationEndTime());
+                
+                logger.info("사용자 중복 예약 검증 결과: 겹치는 예약 개수={}", userOverlappingReservations.size());
+                
+                if (!userOverlappingReservations.isEmpty()) {
+                    for (ReservationEntity existing : userOverlappingReservations) {
+                        logger.warn("기존 예약 발견: 예약ID={}, 룸ID={}, 시작시간={}, 종료시간={}", 
+                                existing.getId(), existing.getRoom().getId(), existing.getStartTime(), existing.getEndTime());
+                    }
+                    logger.warn("동일 시간대 다른 룸 예약 시도 감지: userId={}, 기존예약룸={}, 신규예약룸={}",
+                            user.getId(), userOverlappingReservations.get(0).getRoom().getId(), requestDTO.getRoomId());
+                    return new BaseResponseDTO("동일한 시간대에 다른 스터디룸 예약이 불가능합니다.");
+                }
+            } catch (Exception e) {
+                logger.error("사용자 중복 예약 검증 실패: {}", e.getMessage(), e);
+                return new BaseResponseDTO("예약 시스템 오류가 발생했습니다. 나중에 다시 시도해주세요.");
             }
     
             List<ReservationEntity> overlappingReservations;
@@ -191,6 +230,21 @@ public class ReservationService {
             responseDTO.setMessage("예약 조회 중 오류가 발생했습니다. 나중에 다시 시도해주세요.");
             responseDTO.setReservations(List.of());
             return responseDTO;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public BaseResponseDTO getCurrentCrowdingLevel() {
+        try {
+            LocalDateTime currentTime = LocalDateTime.now();
+            long activeReservationsCount = reservationRepository.countActiveReservationsAtTime(currentTime);
+            
+            logger.info("실시간 혼잡도 조회: 현재시간={}, 예약된룸수={}", currentTime, activeReservationsCount);
+            
+            return new BaseResponseDTO(String.valueOf(activeReservationsCount));
+        } catch (Exception e) {
+            logger.error("실시간 혼잡도 조회 중 오류 발생: {}", e.getMessage(), e);
+            return new BaseResponseDTO("혼잡도 조회 중 오류가 발생했습니다.");
         }
     }
 
