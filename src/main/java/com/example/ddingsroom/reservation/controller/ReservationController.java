@@ -78,4 +78,14 @@ public class ReservationController {
                 response.getReservations() != null ? response.getReservations().size() : 0);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/crowding-level")
+    public ResponseEntity<BaseResponseDTO> getCurrentCrowdingLevel() {
+        logger.info("실시간 혼잡도 조회 요청");
+        
+        BaseResponseDTO response = reservationService.getCurrentCrowdingLevel();
+        
+        logger.info("실시간 혼잡도 조회 완료: {}", response.getMessage());
+        return ResponseEntity.ok(response);
+    }
 }
