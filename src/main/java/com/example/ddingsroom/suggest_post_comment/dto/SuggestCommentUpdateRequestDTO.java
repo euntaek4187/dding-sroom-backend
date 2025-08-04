@@ -4,24 +4,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.stereotype.Service;
 
-public class SuggestCommentDTO {
+public class SuggestCommentUpdateRequestDTO {
 
-    @NotNull(message = "건의 게시물 ID는 필수입니다.")
-    @JsonProperty("suggest_post_id")
-    private Long suggestPostId;
+    @NotNull(message = "댓글 ID는 필수입니다.")
+    @JsonProperty("comment_id")
+    private Long commentId;
 
     @NotBlank(message = "댓글 내용은 비워둘 수 없습니다.")
     @Size(max = 1000, message = "댓글 내용은 1000자를 초과할 수 없습니다.")
     @JsonProperty("answer_content")
     private String answerContent;
 
-    public Long getSuggestPostId() {
-        return suggestPostId;
+    public Long getCommentId() {
+        return commentId;
     }
 
-    public void setSuggestPostId(Long suggestPostId) {
-        this.suggestPostId = suggestPostId;
+    public void setCommentId(Long commentId) {
+        this.commentId = commentId;
     }
 
     public String getAnswerContent() {

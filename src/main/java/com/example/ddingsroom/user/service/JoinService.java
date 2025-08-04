@@ -27,7 +27,6 @@ public class JoinService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    // 이메일 정규식 패턴
     private static final String EMAIL_PATTERN =
             "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
     private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
@@ -45,35 +44,72 @@ public class JoinService {
     }
 
     public ResponseEntity<ResponseDTO> joinProcess(JoinDTO joinDTO) {
+        System.out.println("JoinService: joinProcess 메소드 시작."); //
         try {
-            // 입력값 유효성 검사
+            // 입력값 유효성 검사 (기존 코드)
             if (!StringUtils.hasText(joinDTO.getUsername())) {
+                System.out.println("JoinService: 사용자명 입력 안 됨."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("사용자명을 입력해주세요."));
             }
             if (!StringUtils.hasText(joinDTO.getPassword())) {
+                System.out.println("JoinService: 비밀번호 입력 안 됨."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("비밀번호를 입력해주세요."));
             }
             if (joinDTO.getPassword().length() < 6) {
+                System.out.println("JoinService: 비밀번호 6자 미만."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("비밀번호는 6자 이상이어야 합니다."));
             }
+            if (!StringUtils.hasText(joinDTO.getEmail())) { //
+                System.out.println("JoinService: 이메일 입력 안 됨."); //
+                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
+            }
+            if (!isValidEmail(joinDTO.getEmail())) { //
+                System.out.println("JoinService: 올바르지 않은 이메일 형식."); //
+                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 이메일 형식이 아닙니다."));
+            }
+
+            // DTO에서 받은 값 로그
+            System.out.println("JoinService: JoinDTO received - Username: " + joinDTO.getUsername() + //
+                    ", Email: " + joinDTO.getEmail() + //
+                    ", Age: " + joinDTO.getAge() + //
+                    ", StudentNumber: " + joinDTO.getStudentNumber()); //
+
 
             String username = joinDTO.getUsername();
-            String password = joinDTO.getPassword();
+            String password = joinDTO.getPassword(); // 실제 비밀번호 (인코딩 전)
 
             Boolean isExist = userRepository.existsByUsername(username);
+            System.out.println("JoinService: 사용자명 중복 검사 결과 - " + username + " 존재 여부: " + isExist); //
             if (isExist) {
                 return ResponseEntity.badRequest().body(new ResponseDTO("이미 존재하는 사용자명입니다."));
             }
 
             UserEntity data = new UserEntity();
             data.setUsername(username);
-            data.setPassword(bCryptPasswordEncoder.encode(password));
-            data.setRole("ROLE_ADMIN");
+            data.setPassword(bCryptPasswordEncoder.encode(password)); // 인코딩된 비밀번호 저장
+            data.setRole("ADMIN"); // "ROLE_" 접두사 제거되었는지 확인
+            data.setEmail(joinDTO.getEmail());
+            data.setAge(joinDTO.getAge());
+            data.setStudentNumber(joinDTO.getStudentNumber());
+            data.setState("normal"); // 기본값 설정
+            data.setRegistrationDate(LocalDateTime.now()); // 등록 시간 설정
+
+            // UserEntity에 설정된 최종 값 로그
+            System.out.println("JoinService: UserEntity 최종 설정 값 - Username: " + data.getUsername() + //
+                    ", Email: " + data.getEmail() + //
+                    ", Role: " + data.getRole() + //
+                    ", Age: " + data.getAge() + //
+                    ", StudentNumber: " + data.getStudentNumber() + //
+                    ", State: " + data.getState() + //
+                    ", RegistrationDate: " + data.getRegistrationDate()); //
+
             userRepository.save(data);
+            System.out.println("JoinService: UserEntity 데이터베이스에 저장 완료."); //
 
             return ResponseEntity.ok(new ResponseDTO("관리자 계정이 성공적으로 생성되었습니다."));
 
         } catch (Exception e) {
+            System.err.println("JoinService: 계정 생성 중 오류 발생 - " + e.getMessage()); //
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDTO("계정 생성 중 오류가 발생했습니다: " + e.getMessage()));
         }
