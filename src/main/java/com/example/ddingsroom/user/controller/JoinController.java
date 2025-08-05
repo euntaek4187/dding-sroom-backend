@@ -53,4 +53,9 @@ public class JoinController {
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable String email) {
         return joinService.deleteUser(email);
     }
+
+    @PutMapping("/change-username")
+    public ResponseEntity<ResponseDTO> changeUsername(@RequestBody com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
+        return joinService.changeUsername(changeUsernameDTO);
+    }
 }
