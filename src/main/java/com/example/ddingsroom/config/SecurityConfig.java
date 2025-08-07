@@ -62,7 +62,8 @@ public class SecurityConfig {
                                 Arrays.asList(
                                         "http://localhost:3000",
                                         "https://dding-sroom-frontend.vercel.app",
-                                        "https://ddingsroom.com"
+                                        "https://ddingsroom.com",
+                                        "https://www.ddingsroom.com"
                                 )
                         );
                         configuration.setAllowedMethods(Collections.singletonList("*"));
