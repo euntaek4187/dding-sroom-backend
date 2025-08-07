@@ -58,7 +58,13 @@ public class SecurityConfig {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOrigins(
+                                Arrays.asList(
+                                        "http://localhost:3000",
+                                        "https://dding-sroom-frontend.vercel.app",
+                                        "https://ddingsroom.com"
+                                )
+                        );
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
