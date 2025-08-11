@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 @Service
@@ -136,6 +138,57 @@ public class ReservationService {
                 return new BaseResponseDTO("예약 시스템 오류가 발생했습니다. 나중에 다시 시도해주세요.");
             }
             
+            // ===== 추가 로직: 하루 2시간 예약 제한 검증 =====
+            // 이 로직은 서비스 담당자 요청으로 추가했음. 이후 삭제될 가능성도 있음..
+            // 새로 예약하려는 날짜 추출
+            LocalDate reservationDate = requestDTO.getReservationStartTime().toLocalDate();
+            
+            // 해당 날짜의 시작과 끝시간 계산
+            LocalDateTime startOfDay = reservationDate.atStartOfDay();
+            LocalDateTime endOfDay = reservationDate.plusDays(1).atStartOfDay();
+            
+            // 해당 날짜의 기존 예약들 조회 (취소되지 않은 예약만)
+            List<ReservationEntity> existingReservations = reservationRepository.findReservationsByUserAndDate(user, startOfDay, endOfDay);
+            
+            logger.info("하루 2시간 제한 검증: userId={}, 날짜={}, 기존예약수={}", 
+                    user.getId(), reservationDate, existingReservations.size());
+            
+            // 기존 예약 시간 합계 계산
+            long existingTotalMinutes = 0;
+            for (ReservationEntity existing : existingReservations) {
+                Duration duration = Duration.between(existing.getStartTime(), existing.getEndTime());
+                long minutes = duration.toMinutes();
+                existingTotalMinutes += minutes;
+                logger.info("기존예약: ID={}, 시작={}, 종료={}, 시간={}분", 
+                        existing.getId(), existing.getStartTime(), existing.getEndTime(), minutes);
+            }
+            
+            // 새로운 예약 시간 계산
+            Duration newReservationDuration = Duration.between(requestDTO.getReservationStartTime(), requestDTO.getReservationEndTime());
+            long newReservationMinutes = newReservationDuration.toMinutes();
+            
+            // 총 예약 시간 계산 (기존 + 신규)
+            long totalMinutes = existingTotalMinutes + newReservationMinutes;
+            long totalHours = totalMinutes / 60;
+            
+            logger.info("시간 계산: 기존={}분, 신규={}분, 총합={}분({}시간)", 
+                    existingTotalMinutes, newReservationMinutes, totalMinutes, totalHours);
+            
+            // 2시간 제한 검증
+            if (totalMinutes > 120) {
+                long remainingMinutes = 120 - existingTotalMinutes;
+                long remainingHours = remainingMinutes / 60;
+                
+                if (remainingMinutes <= 0) {
+                    return new BaseResponseDTO("사용자별 예약은 하루 2시간으로 제한됩니다.(남은 시간 없음)");
+                } else if (remainingHours >= 1) {
+                    return new BaseResponseDTO("사용자별 예약은 하루 2시간으로 제한됩니다.(남은 시간: " + remainingHours + "시간)");
+                } else {
+                    return new BaseResponseDTO("사용자별 예약은 하루 2시간으로 제한됩니다.(남은 시간: " + remainingMinutes + "분)");
+                }
+            }
+            // ===== 하루 2시간 예약 제한 검증 끝.. 나중에 없어질 수도 =====
+            
             ReservationEntity reservation = new ReservationEntity();
             reservation.setUser(user);
             reservation.setRoom(room);
@@ -164,6 +217,19 @@ public class ReservationService {
             
             if ("CANCELLED".equals(reservation.getStatus())) {
                 return new BaseResponseDTO("이미 취소된 예약입니다.");
+            }
+            
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startTime = reservation.getStartTime();
+            LocalDateTime endTime = reservation.getEndTime();
+            
+            // 예약 시작 후 이용중이거나 종료된 예약 취소 방지
+            if (now.isAfter(startTime) && now.isBefore(endTime)) {
+                return new BaseResponseDTO("이용 중인 예약은 취소할 수 없습니다.");
+            }
+            
+            if (now.isAfter(endTime)) {
+                return new BaseResponseDTO("이용이 완료된 예약은 취소할 수 없습니다.");
             }
             
             reservation.setStatus("CANCELLED");

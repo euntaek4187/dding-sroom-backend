@@ -47,6 +47,14 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
 
     List<ReservationEntity> findByUserOrderByCreatedAtDesc(UserEntity user, Pageable pageable);
 
+    // 특정 날짜의 사용자 예약 시간 합계 조회 (하루 2시간 제한용)
+    @Query("SELECT r FROM ReservationEntity r WHERE r.user = :user AND r.status = 'RESERVED' " +
+           "AND r.startTime >= :startOfDay AND r.startTime < :endOfDay")
+    List<ReservationEntity> findReservationsByUserAndDate(
+            @Param("user") UserEntity user, 
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
+
     @Transactional
     void deleteByUser(UserEntity user);
 }
