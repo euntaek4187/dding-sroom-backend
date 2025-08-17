@@ -5,6 +5,8 @@ import com.example.ddingsroom.user.entity.VerificationCode;
 import com.example.ddingsroom.user.dto.*;
 import com.example.ddingsroom.user.repository.UserRepository;
 import com.example.ddingsroom.user.repository.VerificationCodeRepository;
+import com.example.ddingsroom.user.repository.RefreshRepository;
+import com.example.ddingsroom.reservation.repository.ReservationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -16,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -25,8 +28,11 @@ public class JoinService {
     private final JavaMailSender javaMailSender;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final RefreshRepository refreshRepository;
+    private final ReservationRepository reservationRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    // 이메일 정규식 패턴
     private static final String EMAIL_PATTERN =
             "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
     private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
@@ -36,80 +42,46 @@ public class JoinService {
     }
 
     public JoinService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                       JavaMailSender javaMailSender, VerificationCodeRepository verificationCodeRepository) {
+                       JavaMailSender javaMailSender, VerificationCodeRepository verificationCodeRepository,
+                       RefreshRepository refreshRepository, ReservationRepository reservationRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.javaMailSender = javaMailSender;
         this.verificationCodeRepository = verificationCodeRepository;
+        this.refreshRepository = refreshRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     public ResponseEntity<ResponseDTO> joinProcess(JoinDTO joinDTO) {
-        System.out.println("JoinService: joinProcess 메소드 시작."); //
         try {
-            // 입력값 유효성 검사 (기존 코드)
+            // 입력값 유효성 검사
             if (!StringUtils.hasText(joinDTO.getUsername())) {
-                System.out.println("JoinService: 사용자명 입력 안 됨."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("사용자명을 입력해주세요."));
             }
             if (!StringUtils.hasText(joinDTO.getPassword())) {
-                System.out.println("JoinService: 비밀번호 입력 안 됨."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("비밀번호를 입력해주세요."));
             }
             if (joinDTO.getPassword().length() < 6) {
-                System.out.println("JoinService: 비밀번호 6자 미만."); //
                 return ResponseEntity.badRequest().body(new ResponseDTO("비밀번호는 6자 이상이어야 합니다."));
             }
-            if (!StringUtils.hasText(joinDTO.getEmail())) { //
-                System.out.println("JoinService: 이메일 입력 안 됨."); //
-                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
-            }
-            if (!isValidEmail(joinDTO.getEmail())) { //
-                System.out.println("JoinService: 올바르지 않은 이메일 형식."); //
-                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 이메일 형식이 아닙니다."));
-            }
-
-            // DTO에서 받은 값 로그
-            System.out.println("JoinService: JoinDTO received - Username: " + joinDTO.getUsername() + //
-                    ", Email: " + joinDTO.getEmail() + //
-                    ", Age: " + joinDTO.getAge() + //
-                    ", StudentNumber: " + joinDTO.getStudentNumber()); //
-
 
             String username = joinDTO.getUsername();
-            String password = joinDTO.getPassword(); // 실제 비밀번호 (인코딩 전)
+            String password = joinDTO.getPassword();
 
             Boolean isExist = userRepository.existsByUsername(username);
-            System.out.println("JoinService: 사용자명 중복 검사 결과 - " + username + " 존재 여부: " + isExist); //
             if (isExist) {
                 return ResponseEntity.badRequest().body(new ResponseDTO("이미 존재하는 사용자명입니다."));
             }
 
             UserEntity data = new UserEntity();
             data.setUsername(username);
-            data.setPassword(bCryptPasswordEncoder.encode(password)); // 인코딩된 비밀번호 저장
-            data.setRole("ADMIN"); // "ROLE_" 접두사 제거되었는지 확인
-            data.setEmail(joinDTO.getEmail());
-            data.setAge(joinDTO.getAge());
-            data.setStudentNumber(joinDTO.getStudentNumber());
-            data.setState("normal"); // 기본값 설정
-            data.setRegistrationDate(LocalDateTime.now()); // 등록 시간 설정
-
-            // UserEntity에 설정된 최종 값 로그
-            System.out.println("JoinService: UserEntity 최종 설정 값 - Username: " + data.getUsername() + //
-                    ", Email: " + data.getEmail() + //
-                    ", Role: " + data.getRole() + //
-                    ", Age: " + data.getAge() + //
-                    ", StudentNumber: " + data.getStudentNumber() + //
-                    ", State: " + data.getState() + //
-                    ", RegistrationDate: " + data.getRegistrationDate()); //
-
+            data.setPassword(bCryptPasswordEncoder.encode(password));
+            data.setRole("ROLE_ADMIN");
             userRepository.save(data);
-            System.out.println("JoinService: UserEntity 데이터베이스에 저장 완료."); //
 
             return ResponseEntity.ok(new ResponseDTO("관리자 계정이 성공적으로 생성되었습니다."));
 
         } catch (Exception e) {
-            System.err.println("JoinService: 계정 생성 중 오류 발생 - " + e.getMessage()); //
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDTO("계정 생성 중 오류가 발생했습니다: " + e.getMessage()));
         }
@@ -203,7 +175,7 @@ public class JoinService {
             newUser.setStudentNumber(signUpDTO.getStudentNumber());
             newUser.setRole("ROLE_USER");
             newUser.setState("normal");
-            newUser.setRegistrationDate(LocalDateTime.now());
+            newUser.setRegistrationDate(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
             userRepository.save(newUser);
 
             return ResponseEntity.ok(new ResponseDTO("회원가입이 성공적으로 완료되었습니다."));
@@ -284,9 +256,6 @@ public class JoinService {
             if (myPageDTO.getState() == null) {
                 myPageDTO.setState("normal");
             }
-            if (myPageDTO.getRegistrationDate() == null) {
-                myPageDTO.setRegistrationDate(LocalDateTime.now());
-            }
             return ResponseEntity.ok(myPageDTO);
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest()
@@ -294,6 +263,36 @@ public class JoinService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDTO("마이페이지 조회 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<ResponseDTO> deleteUser(String email) {
+        try {
+            if (!StringUtils.hasText(email)) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
+            }
+            if (!isValidEmail(email)) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("올바른 이메일 형식이 아닙니다."));
+            }
+
+            UserEntity user = userRepository.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            reservationRepository.deleteByUser(user);
+            refreshRepository.deleteByUsername(email);
+            verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
+
+            userRepository.delete(user);
+
+            return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
 }

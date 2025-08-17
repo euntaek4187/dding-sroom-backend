@@ -11,6 +11,10 @@ public class SuggestCommentDTO {
     @JsonProperty("suggest_post_id")
     private Long suggestPostId;
 
+    @NotNull(message = "사용자 ID는 필수입니다.")
+    @JsonProperty("user_id")
+    private Long userId;
+
     @NotBlank(message = "댓글 내용은 비워둘 수 없습니다.")
     @Size(max = 1000, message = "댓글 내용은 1000자를 초과할 수 없습니다.")
     @JsonProperty("answer_content")
@@ -22,6 +26,14 @@ public class SuggestCommentDTO {
 
     public void setSuggestPostId(Long suggestPostId) {
         this.suggestPostId = suggestPostId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getAnswerContent() {
