@@ -1,9 +1,11 @@
 package com.example.ddingsroom.suggest_post.entity;
 
 import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
+import com.example.ddingsroom.suggest_post_image.entity.SuggestPostImageEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -40,6 +42,9 @@ public class SuggestPostEntity {
 
     @OneToOne(mappedBy = "suggestPost", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private SuggestCommentEntity comment;
+
+    @OneToMany(mappedBy = "suggestPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SuggestPostImageEntity> images = new ArrayList<>();
 
     public SuggestPostEntity() {
 
