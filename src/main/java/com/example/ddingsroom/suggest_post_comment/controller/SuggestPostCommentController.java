@@ -1,21 +1,16 @@
 package com.example.ddingsroom.suggest_post_comment.controller;
 
 import com.example.ddingsroom.config.SecurityUtils;
-import com.example.ddingsroom.user.entity.UserEntity;
-import com.example.ddingsroom.user.repository.UserRepository;
 import com.example.ddingsroom.suggest_post_comment.dto.*;
-import com.example.ddingsroom.suggest_post_comment.service.SuggestCommentService;
+import com.example.ddingsroom.suggest_post_comment.service.SuggestPostCommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,13 +19,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/suggestions/comments")
 @RequiredArgsConstructor
-public class SuggestCommentController {
+public class SuggestPostCommentController {
 
-    private final SuggestCommentService suggestCommentService;
+    private final SuggestPostCommentService suggestPostCommentService;
     private final SecurityUtils securityUtils;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createSuggestComment(@Valid @RequestBody SuggestCommentDTO request) {
+    public ResponseEntity<Map<String, String>> createSuggestComment(@Valid @RequestBody SuggestPostCommentCreateRequestDTO request) {
         Map<String, String> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -41,7 +36,7 @@ public class SuggestCommentController {
 
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-            suggestCommentService.createComment(request, authenticatedUserId);
+            suggestPostCommentService.createComment(request, authenticatedUserId);
             response.put("message", "건의 댓글이 성공적으로 생성되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
@@ -54,7 +49,7 @@ public class SuggestCommentController {
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, String>> updateSuggestComment(@Valid @RequestBody SuggestCommentUpdateRequestDTO request) {
+    public ResponseEntity<Map<String, String>> updateSuggestComment(@Valid @RequestBody SuggestPostCommentUpdateRequestDTO request) {
         Map<String, String> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -65,7 +60,7 @@ public class SuggestCommentController {
 
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-            suggestCommentService.updateComment(request, authenticatedUserId);
+            suggestPostCommentService.updateComment(request, authenticatedUserId);
             response.put("message", "건의 댓글이 성공적으로 업데이트되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -78,7 +73,7 @@ public class SuggestCommentController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Map<String, String>> deleteSuggestComment(@Valid @RequestBody SuggestCommentDeleteRequestDTO request) {
+    public ResponseEntity<Map<String, String>> deleteSuggestComment(@Valid @RequestBody SuggestPostCommentDeleteRequestDTO request) {
         Map<String, String> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -89,7 +84,7 @@ public class SuggestCommentController {
 
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-            suggestCommentService.deleteComment(request, authenticatedUserId);
+            suggestPostCommentService.deleteComment(request, authenticatedUserId);
             response.put("message", "건의 댓글이 성공적으로 삭제되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -105,7 +100,7 @@ public class SuggestCommentController {
     public ResponseEntity<Map<String, Object>> retrieveSuggestComments(@RequestParam("suggest_post_id") Long postId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            List<SuggestCommentResponseDTO> comments = suggestCommentService.getSuggestCommentsByPostId(postId);
+            List<SuggestPostCommentResponseDTO> comments = suggestPostCommentService.getSuggestCommentsByPostId(postId);
 
             if (comments.isEmpty()) {
                 response.put("comments", Collections.emptyList());

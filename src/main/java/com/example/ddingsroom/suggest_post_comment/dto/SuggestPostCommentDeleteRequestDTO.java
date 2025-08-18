@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestCommentDeleteRequestDTO {
+public class SuggestPostCommentDeleteRequestDTO {
 
     @NotNull(message = "댓글 ID는 필수입니다.")
     @JsonProperty("comment_id")

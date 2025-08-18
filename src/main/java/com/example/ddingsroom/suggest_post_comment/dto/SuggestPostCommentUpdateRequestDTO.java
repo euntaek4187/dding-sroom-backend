@@ -8,13 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.stereotype.Service;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestCommentUpdateRequestDTO {
+public class SuggestPostCommentUpdateRequestDTO {
 
     @NotNull(message = "댓글 ID는 필수입니다.")
     @JsonProperty("comment_id")

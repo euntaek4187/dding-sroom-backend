@@ -1,6 +1,6 @@
 package com.example.ddingsroom.suggest_post.entity;
 
-import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
+import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
 import com.example.ddingsroom.suggest_post_image.entity.SuggestPostImageEntity;
 import jakarta.persistence.*;
 
@@ -41,7 +41,7 @@ public class SuggestPostEntity {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "suggestPost", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private SuggestCommentEntity comment;
+    private SuggestPostCommentEntity comment;
 
     @OneToMany(mappedBy = "suggestPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SuggestPostImageEntity> images = new ArrayList<>();
@@ -142,11 +142,11 @@ public class SuggestPostEntity {
 
     public LocalDateTime getUpdatedAt(){ return this.updatedAt; }
 
-    public SuggestCommentEntity getComment(){
+    public SuggestPostCommentEntity getComment(){
         return comment;
     }
 
-    public void setComment(SuggestCommentEntity comment){
+    public void setComment(SuggestPostCommentEntity comment){
         this.comment = comment;
         if (comment != null) {
             comment.setSuggestPost(this);

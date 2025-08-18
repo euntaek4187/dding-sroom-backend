@@ -1,13 +1,12 @@
 package com.example.ddingsroom.suggest_post.service;
 
 import com.example.ddingsroom.suggest_post.dto.SuggestPostCreateRequestDTO;
-import com.example.ddingsroom.suggest_post.dto.SuggestPostDeleteRequestDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostResponseDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
-import com.example.ddingsroom.suggest_post.util.Category;
-import com.example.ddingsroom.suggest_post.util.Location;
+import com.example.ddingsroom.suggest_post.util.SuggestPostCategory;
+import com.example.ddingsroom.suggest_post.util.SuggestPostLocation;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,19 +26,19 @@ public class SuggestPostSevice {
     private final SuggestPostRepository suggestPostRepository;
 
     private int getCategoryValue(String categoryName) {
-        Category categoryEnum = Category.fromName(categoryName);
+        SuggestPostCategory categoryEnum = SuggestPostCategory.fromName(categoryName);
         if (categoryEnum == null) {
             throw new IllegalArgumentException("유효하지 않은 카테고리 값입니다: '" + categoryName +
-                    "'. 유효한 값: " + String.join(", ", Category.getAllNames()));
+                    "'. 유효한 값: " + String.join(", ", SuggestPostCategory.getAllNames()));
         }
         return categoryEnum.getValue();
     }
 
     private int getLocationValue(String locationName) {
-        Location locationEnum = Location.fromName(locationName);
+        SuggestPostLocation locationEnum = SuggestPostLocation.fromName(locationName);
         if (locationEnum == null) {
             throw new IllegalArgumentException("유효하지 않은 위치 값입니다: '" + locationName +
-                    "'. 유효한 값: " + String.join(", ", Location.getAllNames()));
+                    "'. 유효한 값: " + String.join(", ", SuggestPostLocation.getAllNames()));
         }
         return locationEnum.getValue();
     }

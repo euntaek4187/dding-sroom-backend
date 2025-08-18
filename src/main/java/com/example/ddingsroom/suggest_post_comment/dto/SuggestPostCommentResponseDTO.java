@@ -1,6 +1,6 @@
 package com.example.ddingsroom.suggest_post_comment.dto;
 
-import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
+import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestCommentResponseDTO {
+public class SuggestPostCommentResponseDTO {
     private Long id;
 
     @JsonProperty("suggest_post_id")
@@ -31,7 +31,7 @@ public class SuggestCommentResponseDTO {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
-    public SuggestCommentResponseDTO(SuggestCommentEntity entity) {
+    public SuggestPostCommentResponseDTO(SuggestPostCommentEntity entity) {
         this.id = entity.getId();
         this.suggestPostId = entity.getSuggestPost().getId();
         this.userId = entity.getUserId();

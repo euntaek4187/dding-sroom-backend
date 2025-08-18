@@ -1,8 +1,8 @@
 package com.example.ddingsroom.suggest_post.dto;
 
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
-import com.example.ddingsroom.suggest_post.util.Category;
-import com.example.ddingsroom.suggest_post.util.Location;
+import com.example.ddingsroom.suggest_post.util.SuggestPostCategory;
+import com.example.ddingsroom.suggest_post.util.SuggestPostLocation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -50,8 +50,8 @@ public class SuggestPostResponseDTO {
         this.suggestContent = entity.getSuggestContent();
         this.createdAt = entity.getCreatedAt();
         this.updatedAt = entity.getUpdatedAt();
-        this.category = Category.fromValue(entity.getCategory()).getName();
-        this.location = Location.fromValue(entity.getLocation()).getName();
+        this.category = SuggestPostCategory.fromValue(entity.getCategory()).getName();
+        this.location = SuggestPostLocation.fromValue(entity.getLocation()).getName();
         this.isAnswered = entity.isAnswered();
     }
 

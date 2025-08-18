@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestCommentDTO {
+public class SuggestPostCommentCreateRequestDTO {
 
     @NotNull(message = "건의 게시물 ID는 필수입니다.")
     @JsonProperty("suggest_post_id")

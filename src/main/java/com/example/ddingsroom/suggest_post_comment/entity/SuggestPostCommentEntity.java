@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestCommentEntity {
+public class SuggestPostCommentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ public class SuggestCommentEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SuggestCommentEntity(SuggestPostEntity suggestPost, Long userId, String answerContent) {
+    public SuggestPostCommentEntity(SuggestPostEntity suggestPost, Long userId, String answerContent) {
         this.suggestPost = suggestPost;
         this.userId = userId;
         this.answerContent = answerContent;

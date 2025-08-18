@@ -2,29 +2,28 @@ package com.example.ddingsroom.suggest_post_comment.service;
 
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
-import com.example.ddingsroom.suggest_post_comment.dto.SuggestCommentDTO;
-import com.example.ddingsroom.suggest_post_comment.dto.SuggestCommentResponseDTO;
-import com.example.ddingsroom.suggest_post_comment.dto.SuggestCommentUpdateRequestDTO;
-import com.example.ddingsroom.suggest_post_comment.dto.SuggestCommentDeleteRequestDTO;
-import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
-import com.example.ddingsroom.suggest_post_comment.repository.SuggestCommentRepository;
+import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentCreateRequestDTO;
+import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentResponseDTO;
+import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentUpdateRequestDTO;
+import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentDeleteRequestDTO;
+import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
+import com.example.ddingsroom.suggest_post_comment.repository.SuggestPostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class SuggestCommentService {
+public class SuggestPostCommentService {
 
-    private final SuggestCommentRepository suggestCommentRepository;
+    private final SuggestPostCommentRepository suggestPostCommentRepository;
     private final SuggestPostRepository suggestPostRepository;
 
     @Transactional
-    public void createComment(SuggestCommentDTO request, Long authenticatedUserId) {
+    public void createComment(SuggestPostCommentCreateRequestDTO request, Long authenticatedUserId) {
         SuggestPostEntity suggestPost = suggestPostRepository.findById(request.getSuggestPostId())
                 .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + request.getSuggestPostId()));
 
@@ -32,7 +31,7 @@ public class SuggestCommentService {
             throw new IllegalArgumentException("해당 건의 게시물(ID: " + request.getSuggestPostId() + ")에는 이미 댓글이 존재합니다.");
         }
 
-        SuggestCommentEntity newComment = new SuggestCommentEntity(
+        SuggestPostCommentEntity newComment = new SuggestPostCommentEntity(
                 suggestPost,
                 authenticatedUserId,
                 request.getAnswerContent()
@@ -47,8 +46,8 @@ public class SuggestCommentService {
     }
 
     @Transactional
-    public void updateComment(SuggestCommentUpdateRequestDTO request, Long authenticatedUserId) {
-        SuggestCommentEntity existingComment = suggestCommentRepository.findById(request.getCommentId())
+    public void updateComment(SuggestPostCommentUpdateRequestDTO request, Long authenticatedUserId) {
+        SuggestPostCommentEntity existingComment = suggestPostCommentRepository.findById(request.getCommentId())
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + request.getCommentId()));
 
         if (!existingComment.getUserId().equals(authenticatedUserId)) {
@@ -56,12 +55,12 @@ public class SuggestCommentService {
         }
 
         existingComment.setAnswerContent(request.getAnswerContent());
-        suggestCommentRepository.save(existingComment);
+        suggestPostCommentRepository.save(existingComment);
     }
 
     @Transactional
-    public void deleteComment(SuggestCommentDeleteRequestDTO request, Long authenticatedUserId) {
-        SuggestCommentEntity existingComment = suggestCommentRepository.findById(request.getCommentId())
+    public void deleteComment(SuggestPostCommentDeleteRequestDTO request, Long authenticatedUserId) {
+        SuggestPostCommentEntity existingComment = suggestPostCommentRepository.findById(request.getCommentId())
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + request.getCommentId()));
 
         if (!existingComment.getUserId().equals(authenticatedUserId)) {
@@ -77,20 +76,20 @@ public class SuggestCommentService {
             suggestPostRepository.save(suggestPost);
         }
 
-        suggestCommentRepository.delete(existingComment);
+        suggestPostCommentRepository.delete(existingComment);
     }
 
     @Transactional(readOnly = true)
-    public List<SuggestCommentResponseDTO> getSuggestCommentsByPostId(Long postId) {
+    public List<SuggestPostCommentResponseDTO> getSuggestCommentsByPostId(Long postId) {
         suggestPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + postId));
 
-        SuggestCommentEntity comment = suggestPostRepository.findById(postId)
+        SuggestPostCommentEntity comment = suggestPostRepository.findById(postId)
                 .map(SuggestPostEntity::getComment)
                 .orElse(null);
 
         if (comment != null) {
-            return Collections.singletonList(new SuggestCommentResponseDTO(comment));
+            return Collections.singletonList(new SuggestPostCommentResponseDTO(comment));
         } else {
             return Collections.emptyList();
         }

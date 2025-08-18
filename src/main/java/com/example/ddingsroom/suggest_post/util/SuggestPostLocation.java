@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public enum Location {
+public enum SuggestPostLocation {
     STUDY_ROOM_1(1, "스터디룸1"),
     STUDY_ROOM_2(2, "스터디룸2"),
     STUDY_ROOM_3(3, "스터디룸3"),
@@ -16,7 +16,7 @@ public enum Location {
     private final int value;
     private final String name;
 
-    Location(int value, String name) {
+    SuggestPostLocation(int value, String name) {
         this.value = value;
         this.name = name;
     }
@@ -29,17 +29,17 @@ public enum Location {
         return name;
     }
 
-    private static final Map<String, Location> NAME_MAP =
-            Arrays.stream(Location.values()).collect(Collectors.toMap(Location::getName, Function.identity()));
+    private static final Map<String, SuggestPostLocation> NAME_MAP =
+            Arrays.stream(SuggestPostLocation.values()).collect(Collectors.toMap(SuggestPostLocation::getName, Function.identity()));
 
-    private static final Map<Integer, Location> VALUE_MAP =
-            Arrays.stream(Location.values()).collect(Collectors.toMap(Location::getValue, Function.identity()));
+    private static final Map<Integer, SuggestPostLocation> VALUE_MAP =
+            Arrays.stream(SuggestPostLocation.values()).collect(Collectors.toMap(SuggestPostLocation::getValue, Function.identity()));
 
-    public static Location fromName(String name) {
+    public static SuggestPostLocation fromName(String name) {
         return NAME_MAP.get(name);
     }
 
-    public static Location fromValue(int value) {
+    public static SuggestPostLocation fromValue(int value) {
         return VALUE_MAP.get(value);
     }
 
@@ -48,6 +48,6 @@ public enum Location {
     }
 
     public static List<String> getAllNames() {
-        return Arrays.stream(Location.values()).map(Location::getName).collect(Collectors.toList());
+        return Arrays.stream(SuggestPostLocation.values()).map(SuggestPostLocation::getName).collect(Collectors.toList());
     }
 }
