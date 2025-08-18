@@ -94,11 +94,11 @@ public class SuggestPostController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> retrieveSuggestPosts(
-            @RequestParam Optional<Long> suggestId,
-            @RequestParam Optional<Long> userId,
-            @RequestParam Optional<String> category,
-            @RequestParam Optional<String> location,
-            @RequestParam Optional<Boolean> isAnswered) {
+            @RequestParam(name = "suggest_id", required = false) Optional<Long> suggestId,
+            @RequestParam(name = "user_id", required = false) Optional<Long> userId,
+            @RequestParam(name = "category", required = false) Optional<String> category,
+            @RequestParam(name = "location", required = false) Optional<String> location,
+            @RequestParam(name = "is_answered", required = false) Optional<Boolean> isAnswered) {
 
         Map<String, Object> response = new HashMap<>();
         try {

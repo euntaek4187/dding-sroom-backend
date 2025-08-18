@@ -3,18 +3,44 @@ package com.example.ddingsroom.suggest_post.dto;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.util.Category;
 import com.example.ddingsroom.suggest_post.util.Location;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.time.LocalDateTime;
 
+@JsonPropertyOrder({
+        "id",
+        "user_id",
+        "suggest_title",
+        "suggest_content",
+        "created_at",
+        "updated_at",
+        "category",
+        "location",
+        "is_answered"
+})
 public class SuggestPostResponseDTO {
     private Long id;
+
+    @JsonProperty("user_id")
     private Long userId;
+
+    @JsonProperty("suggest_title")
     private String suggestTitle;
+
+    @JsonProperty("suggest_content")
     private String suggestContent;
+
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
+
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
     private String category;
     private String location;
+
+    @JsonProperty("is_answered")
     private boolean isAnswered;
 
     public SuggestPostResponseDTO(SuggestPostEntity entity) {
@@ -61,6 +87,7 @@ public class SuggestPostResponseDTO {
         return location;
     }
 
+    @JsonProperty("is_answered")
     public boolean isAnswered() {
         return isAnswered;
     }
