@@ -67,4 +67,31 @@ public class CommunityPostController {
         BaseResponseDTO response = service.getCommunityPost(id);
         return ResponseEntity.ok(response);
     }
+    // CommunityPostController.java에 추가
+
+    // 특정 사용자의 모든 게시글 조회
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<BaseResponseDTO> getPostsByUserId(@PathVariable Long userId) {
+        BaseResponseDTO response = service.getPostsByUserId(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 특정 사용자의 특정 카테고리 게시글 조회
+    @GetMapping("/user/{userId}/category/{category}")
+    public ResponseEntity<BaseResponseDTO> getPostsByUserIdAndCategory(
+            @PathVariable Long userId,
+            @PathVariable Integer category) {
+        BaseResponseDTO response = service.getPostsByUserIdAndCategory(userId, category);
+        return ResponseEntity.ok(response);
+    }
+
+    // 특정 사용자의 게시글 조회 (쿼리 파라미터로 카테고리 필터링)
+    @GetMapping("/user/{userId}/posts")
+    public ResponseEntity<BaseResponseDTO> getPostsByUserIdWithFilter(
+            @PathVariable Long userId,
+            @RequestParam(required = false) Integer category) {
+        BaseResponseDTO response = service.getPostsByUserIdWithFilter(userId, category);
+        return ResponseEntity.ok(response);
+    }
+
 }

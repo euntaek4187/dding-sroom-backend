@@ -1,12 +1,12 @@
-package com.example.ddingsroom.community_post.entity1;
+package com.example.ddingsroom.CommunityPostComment.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,11 +29,24 @@ public class CommunityPostCommentEntity {
     @Column(name = "comment_content")
     private String commentContent;
 
+    // 대댓글을 위한 부모 댓글 ID (nullable)
+    @Column(name = "parent_comment_id")
+    private Long parentCommentId;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // 부모 댓글 참조 (optional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id", insertable = false, updatable = false)
+    private CommunityPostCommentEntity parentComment;
+
+    // 자식 댓글들 (대댓글들)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
+    private List<CommunityPostCommentEntity> replies;
 
     @PrePersist
     protected void onCreate() {
