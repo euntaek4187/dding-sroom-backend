@@ -67,10 +67,10 @@ public class SuggestPostEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-//    @PreUpdate
-//    protected void onUpdate() {
-//        this.updatedAt = LocalDateTime.now();
-//    }
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public Long getId(){
         return this.id;
