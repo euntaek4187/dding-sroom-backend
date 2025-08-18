@@ -10,7 +10,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "suggest_comment")
+@Table(name = "suggest_post_comment")
 @Getter
 @Setter
 @NoArgsConstructor
