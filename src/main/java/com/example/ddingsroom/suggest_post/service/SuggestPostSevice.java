@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,13 +21,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SuggestPostSevice {
 
     private final SuggestPostRepository suggestPostRepository;
-
-    public SuggestPostSevice(SuggestPostRepository suggestPostRepository) {
-        this.suggestPostRepository = suggestPostRepository;
-    }
 
     private int getCategoryValue(String categoryName) {
         Category categoryEnum = Category.fromName(categoryName);
@@ -47,29 +45,27 @@ public class SuggestPostSevice {
     }
 
     @Transactional
-    public SuggestPostEntity createSuggestPost(@Valid SuggestPostCreateRequestDTO request) {
-
+    public SuggestPostEntity createSuggestPost(@Valid SuggestPostCreateRequestDTO request, Long authenticatedUserId) {
         int categoryValue = getCategoryValue(request.getCategory());
         int locationValue = getLocationValue(request.getLocation());
 
         SuggestPostEntity newPost = new SuggestPostEntity(
-                request.getUserId(),
+                authenticatedUserId,
                 request.getSuggestTitle(),
                 request.getSuggestContent(),
                 categoryValue,
                 locationValue
         );
-
         return suggestPostRepository.save(newPost);
     }
 
     @Transactional
-    public SuggestPostEntity updateSuggestPost(Long suggestId, SuggestPostUpdateRequestDTO request) {
+    public SuggestPostEntity updateSuggestPost(Long suggestId, SuggestPostUpdateRequestDTO request, Long authenticatedUserId) {
         SuggestPostEntity existingPost = suggestPostRepository.findById(suggestId)
                 .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + suggestId));
 
-        if(!existingPost.getUserId().equals(request.getUserId())){
-            throw new IllegalArgumentException("게시물 수정 권한이 없습니다. 사용자 ID: " + request.getUserId());
+        if (!existingPost.getUserId().equals(authenticatedUserId)) {
+            throw new SecurityException("게시물 수정 권한이 없습니다.");
         }
 
         int  categoryValue = getCategoryValue(request.getCategory());
@@ -85,12 +81,12 @@ public class SuggestPostSevice {
     }
 
     @Transactional
-    public void deleteSuggestPost(Long suggestId, SuggestPostDeleteRequestDTO request) {
+    public void deleteSuggestPost(Long suggestId, Long authenticatedUserId) {
         SuggestPostEntity existingPost = suggestPostRepository.findById(suggestId)
                 .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + suggestId));
 
-        if(!existingPost.getUserId().equals(request.getUserId())){
-            throw new IllegalArgumentException("게시물 삭제 권한이 없습니다. 사용자 ID: " + request.getUserId());
+        if (!existingPost.getUserId().equals(authenticatedUserId)) {
+            throw new SecurityException("게시물 삭제 권한이 없습니다.");
         }
 
         suggestPostRepository.delete(existingPost);
@@ -103,25 +99,20 @@ public class SuggestPostSevice {
             Optional<String> categoryNameStr,
             Optional<String> locationNameStr,
             Optional<Boolean> isAnswered) {
-
         Optional<Integer> categoryValueOpt = categoryNameStr.map(this::getCategoryValue);
         Optional<Integer> locationValueOpt = locationNameStr.map(this::getLocationValue);
 
         Specification<SuggestPostEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
             suggestId.ifPresent(id -> predicates.add(cb.equal(root.get("id"), id)));
             userId.ifPresent(id -> predicates.add(cb.equal(root.get("userId"), id)));
-
             categoryValueOpt.ifPresent(catVal -> predicates.add(cb.equal(root.get("category"), catVal)));
             locationValueOpt.ifPresent(locVal -> predicates.add(cb.equal(root.get("location"), locVal)));
             isAnswered.ifPresent(answered -> predicates.add(cb.equal(root.get("isAnswered"), answered)));
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
         List<SuggestPostEntity> entities = suggestPostRepository.findAll(spec);
-
         return entities.stream()
                 .map(SuggestPostResponseDTO::new)
                 .collect(Collectors.toList());

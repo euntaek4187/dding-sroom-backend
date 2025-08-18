@@ -2,9 +2,17 @@ package com.example.ddingsroom.suggest_post_comment.dto;
 
 import com.example.ddingsroom.suggest_post_comment.entity.SuggestCommentEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SuggestCommentResponseDTO {
     private Long id;
 
@@ -32,27 +40,4 @@ public class SuggestCommentResponseDTO {
         this.updatedAt = entity.getUpdatedAt();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Long getSuggestPostId() {
-        return suggestPostId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public String getAnswerContent() {
-        return answerContent;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }

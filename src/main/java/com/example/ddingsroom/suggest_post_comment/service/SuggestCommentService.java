@@ -34,7 +34,7 @@ public class SuggestCommentService {
 
         SuggestCommentEntity newComment = new SuggestCommentEntity(
                 suggestPost,
-                request.getUserId(),
+                authenticatedUserId,
                 request.getAnswerContent()
         );
 
@@ -47,12 +47,12 @@ public class SuggestCommentService {
     }
 
     @Transactional
-    public void updateComment(SuggestCommentUpdateRequestDTO request) {
+    public void updateComment(SuggestCommentUpdateRequestDTO request, Long authenticatedUserId) {
         SuggestCommentEntity existingComment = suggestCommentRepository.findById(request.getCommentId())
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + request.getCommentId()));
 
-        if (!existingComment.getUserId().equals(request.getUserId())) {
-            throw new IllegalArgumentException("댓글 수정 권한이 없습니다. (댓글 작성자 ID: " + existingComment.getUserId() + ", 요청된 사용자 ID: " + request.getUserId() + ")");
+        if (!existingComment.getUserId().equals(authenticatedUserId)) {
+            throw new IllegalArgumentException("댓글 수정 권한이 없습니다. (댓글 작성자 ID: " + existingComment.getUserId() + ", 요청된 사용자 ID: " + authenticatedUserId + ")");
         }
 
         existingComment.setAnswerContent(request.getAnswerContent());
@@ -60,19 +60,24 @@ public class SuggestCommentService {
     }
 
     @Transactional
-    public void deleteComment(SuggestCommentDeleteRequestDTO request) {
+    public void deleteComment(SuggestCommentDeleteRequestDTO request, Long authenticatedUserId) {
         SuggestCommentEntity existingComment = suggestCommentRepository.findById(request.getCommentId())
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + request.getCommentId()));
 
-        if (!existingComment.getUserId().equals(request.getUserId())) {
-            throw new IllegalArgumentException("댓글 삭제 권한이 없습니다. (댓글 작성자 ID: " + existingComment.getUserId() + ", 요청된 사용자 ID: " + request.getUserId() + ")");
+        if (!existingComment.getUserId().equals(authenticatedUserId)) {
+            throw new IllegalArgumentException("댓글 삭제 권한이 없습니다. (댓글 작성자 ID: " + existingComment.getUserId() + ", 요청된 사용자 ID: " + authenticatedUserId + ")");
+        }
+
+        SuggestPostEntity suggestPost = existingComment.getSuggestPost();
+
+        if (suggestPost != null) {
+            suggestPost.removeComment();
+            suggestPost.setAnswered(false);
+
+            suggestPostRepository.save(suggestPost);
         }
 
         suggestCommentRepository.delete(existingComment);
-
-        SuggestPostEntity suggestPost = existingComment.getSuggestPost();
-        suggestPost.setAnswered(false);
-        suggestPostRepository.save(suggestPost);
     }
 
     @Transactional(readOnly = true)

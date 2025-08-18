@@ -1,5 +1,6 @@
 package com.example.ddingsroom.suggest_post_image.controller;
 
+import com.example.ddingsroom.config.SecurityUtils;
 import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.repository.UserRepository;
 import com.example.ddingsroom.suggest_post_image.dto.SuggestPostImageUploadRequestDTO;
@@ -27,41 +28,7 @@ import java.util.*;
 public class SuggestPostImageController {
 
     private final SuggestPostImageService suggestPostImageService;
-    private final UserRepository userRepository;
-
-    private Long getAuthenticatedUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new SecurityException("로그인되지 않은 사용자입니다.");
-        }
-        Object principal = authentication.getPrincipal();
-        String username;
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
-        } else if (principal instanceof String) {
-            username = (String) principal;
-        } else {
-            throw new IllegalStateException("인증된 사용자 principal의 타입을 알 수 없습니다: " + principal.getClass().getName());
-        }
-        UserEntity userEntity = userRepository.findByUsername(username);
-        if (userEntity == null) {
-            throw new IllegalStateException("인증된 사용자(" + username + ")의 정보를 데이터베이스에서 찾을 수 없습니다.");
-        }
-        return (long) userEntity.getId();
-    }
-
-    private boolean isAdmin(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        for (GrantedAuthority authority : authorities) {
-            if (authority.getAuthority().equals("ROLE_ADMIN")) {
-                return true;
-            }
-        }
-        return false;
-    }
+    private final SecurityUtils securityUtils;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> uploadSuggestImage(
@@ -69,23 +36,24 @@ public class SuggestPostImageController {
             @RequestPart("image_file") MultipartFile imageFile) {
 
         Map<String, Object> response = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         try {
-            Long authenticatedUserId = getAuthenticatedUserId();
-            if (!request.getUserId().equals(authenticatedUserId)) {
-                response.put("error", "요청한 사용자 ID와 인증된 사용자 ID가 일치하지 않습니다.");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-            }
-            if (!isAdmin(SecurityContextHolder.getContext().getAuthentication())) {
+            Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+
+            if (!securityUtils.isAdmin(authentication)) {
                 response.put("error", "관리자만 이미지를 업로드할 수 있습니다.");
                 return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
 
-            SuggestPostImageResponseDTO uploadedImage = suggestPostImageService.uploadImage(request.getSuggestPostId(), request.getUserId(), imageFile);
+            SuggestPostImageResponseDTO uploadedImage = suggestPostImageService.uploadImage(request.getSuggestPostId(), authenticatedUserId, imageFile);
 
             response.put("message", "건의 이미지가 성공적으로 업로드되었습니다!");
             response.put("image_id", uploadedImage.getId());
             response.put("image_url", uploadedImage.getFileUrl());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (SecurityException e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         } catch (IllegalArgumentException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -101,21 +69,23 @@ public class SuggestPostImageController {
     @DeleteMapping
     public ResponseEntity<Map<String, String>> deleteSuggestImage(@Valid @RequestBody SuggestPostImageDeleteRequestDTO request) {
         Map<String, String> response = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         try {
-            Long authenticatedUserId = getAuthenticatedUserId();
-            if (!request.getUserId().equals(authenticatedUserId)) {
-                response.put("error", "요청한 사용자 ID와 인증된 사용자 ID가 일치하지 않습니다.");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-            }
-            if (!isAdmin(SecurityContextHolder.getContext().getAuthentication())) {
+            Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+
+            if (!securityUtils.isAdmin(authentication)) {
                 response.put("error", "관리자만 이미지를 삭제할 수 있습니다.");
                 return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
 
-            suggestPostImageService.deleteImage(request.getImageId(), request.getUserId());
+            suggestPostImageService.deleteImage(request.getImageId(), authenticatedUserId);
 
             response.put("message", "건의 이미지가 성공적으로 삭제되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (SecurityException e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         } catch (IllegalArgumentException e) {
             response.put("error", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

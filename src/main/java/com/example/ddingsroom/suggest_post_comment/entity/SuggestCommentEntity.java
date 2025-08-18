@@ -2,11 +2,19 @@ package com.example.ddingsroom.suggest_post_comment.entity;
 
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "suggest_comment")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SuggestCommentEntity {
 
     @Id
@@ -29,63 +37,12 @@ public class SuggestCommentEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SuggestCommentEntity() {}
-
     public SuggestCommentEntity(SuggestPostEntity suggestPost, Long userId, String answerContent) {
         this.suggestPost = suggestPost;
         this.userId = userId;
         this.answerContent = answerContent;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-    }
-
-
-    public Long getId(){
-        return id;
-    }
-
-    public void setId(Long id){
-        this.id = id;
-    }
-
-    public SuggestPostEntity getSuggestPost(){
-        return suggestPost;
-    }
-
-    public void setSuggestPost(SuggestPostEntity suggestPost){
-        this.suggestPost = suggestPost;
-    }
-
-    public Long getUserId(){
-        return userId;
-    }
-    public void setUserId(Long userId){
-        this.userId = userId;
-    }
-
-    public String getAnswerContent(){
-        return answerContent;
-    }
-
-    public void setAnswerContent(String answerContent){
-        this.answerContent = answerContent;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public LocalDateTime getCreatedAt(){
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt){
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt(){
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt){
-        this.updatedAt = updatedAt;
     }
 
 }
