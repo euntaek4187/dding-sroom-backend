@@ -138,6 +138,16 @@ public class JoinService {
             if (verificationCodeOptional.isPresent()) {
                 VerificationCode verificationCode = verificationCodeOptional.get();
 
+                // 인증코드 만료 시간 체크 (5분 = 300초)
+                LocalDateTime publishedTime = verificationCode.getPublishedDate();
+                LocalDateTime currentTime = LocalDateTime.now();
+                long minutesDifference = java.time.Duration.between(publishedTime, currentTime).toMinutes();
+
+                if (minutesDifference > 5) {
+                    verificationCodeRepository.delete(verificationCode);
+                    return ResponseEntity.badRequest().body(new ResponseDTO("인증코드가 만료되었습니다."));
+                }
+
                 if (verificationCode.getCode().equals(code)) {
                     verificationCodeRepository.delete(verificationCode);
                     return ResponseEntity.ok(new ResponseDTO("이메일 인증이 성공적으로 완료되었습니다."));
@@ -293,6 +303,82 @@ public class JoinService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDTO("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    public ResponseEntity<ResponseDTO> changeUsername(com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
+        try {
+            if (changeUsernameDTO.getUserId() == null) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
+            }
+            if (!StringUtils.hasText(changeUsernameDTO.getNewUsername())) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("새 사용자명을 입력해주세요."));
+            }
+
+            Optional<UserEntity> userEntityOptional = userRepository.findById(changeUsernameDTO.getUserId());
+            if (userEntityOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            if (userRepository.existsByUsername(changeUsernameDTO.getNewUsername())) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("중복된 이름입니다."));
+            }
+
+            UserEntity user = userEntityOptional.get();
+            user.setUsername(changeUsernameDTO.getNewUsername());
+            userRepository.save(user);
+
+            return ResponseEntity.ok(new ResponseDTO("사용자명이 성공적으로 변경되었습니다."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("사용자명 변경 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<ResponseDTO> withdrawUserById(int userId) {
+        try {
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            UserEntity user = userOptional.get();
+
+            // 기존 로직 그대로 유지 - 관련 데이터 삭제
+            reservationRepository.deleteByUser(user);
+            refreshRepository.deleteByUsername(user.getEmail());
+            verificationCodeRepository.findByEmail(user.getEmail()).ifPresent(verificationCodeRepository::delete);
+
+            userRepository.delete(user);
+
+            return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    public ResponseEntity<ResponseDTO> verifyUserEmail(String tokenEmail, String inputEmail) {
+        try {
+            // 입력값 검증
+            if (inputEmail == null || inputEmail.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
+            }
+            
+            // 사용자가 입력한 이메일과 토큰의 이메일 비교
+            if (tokenEmail.equals(inputEmail.trim())) {
+                return ResponseEntity.ok(new ResponseDTO("사용자 이메일이 일치합니다."));
+            } else {
+                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 이메일이 일치하지 않습니다."));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("이메일 검증 중 오류가 발생했습니다."));
         }
     }
 }
