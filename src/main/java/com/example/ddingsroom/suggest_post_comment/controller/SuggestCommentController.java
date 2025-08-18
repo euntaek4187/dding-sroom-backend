@@ -138,7 +138,7 @@ public class SuggestCommentController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> retrieveSuggestComments(@RequestParam("post_id") Long postId) {
+    public ResponseEntity<Map<String, Object>> retrieveSuggestComments(@RequestParam("suggest_post_id") Long postId) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<SuggestCommentResponseDTO> comments = suggestCommentService.getSuggestCommentsByPostId(postId);
