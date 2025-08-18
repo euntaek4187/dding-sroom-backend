@@ -66,8 +66,8 @@ public class SuggestPostImageController {
         }
     }
 
-    @DeleteMapping
-    public ResponseEntity<Map<String, String>> deleteSuggestImage(@Valid @RequestBody SuggestPostImageDeleteRequestDTO request) {
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Map<String, String>> deleteSuggestImage(@PathVariable Long imageId) {
         Map<String, String> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -79,7 +79,7 @@ public class SuggestPostImageController {
                 return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
             }
 
-            suggestPostImageService.deleteImage(request.getImageId(), authenticatedUserId);
+            suggestPostImageService.deleteImage(imageId, authenticatedUserId);
 
             response.put("message", "건의 이미지가 성공적으로 삭제되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);

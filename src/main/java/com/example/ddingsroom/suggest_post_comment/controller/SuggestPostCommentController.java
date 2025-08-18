@@ -72,19 +72,19 @@ public class SuggestPostCommentController {
         }
     }
 
-    @DeleteMapping
-    public ResponseEntity<Map<String, String>> deleteSuggestComment(@Valid @RequestBody SuggestPostCommentDeleteRequestDTO request) {
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Map<String, String>> deleteSuggestComment(@PathVariable Long commentId) {
         Map<String, String> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (!securityUtils.isAdmin(authentication)) {
-            response.put("error", "댓글 수정 권한이 없습니다. (관리자 전용 기능");
+            response.put("error", "댓글 삭제 권한이 없습니다. (관리자 전용 기능");
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
 
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-            suggestPostCommentService.deleteComment(request, authenticatedUserId);
+            suggestPostCommentService.deleteComment(commentId, authenticatedUserId);
             response.put("message", "건의 댓글이 성공적으로 삭제되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {

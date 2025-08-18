@@ -59,9 +59,9 @@ public class SuggestPostCommentService {
     }
 
     @Transactional
-    public void deleteComment(SuggestPostCommentDeleteRequestDTO request, Long authenticatedUserId) {
-        SuggestPostCommentEntity existingComment = suggestPostCommentRepository.findById(request.getCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + request.getCommentId()));
+    public void deleteComment(Long commentId, Long authenticatedUserId) {
+        SuggestPostCommentEntity existingComment = suggestPostCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다. ID: " + commentId));
 
         if (!existingComment.getUserId().equals(authenticatedUserId)) {
             throw new IllegalArgumentException("댓글 삭제 권한이 없습니다. (댓글 작성자 ID: " + existingComment.getUserId() + ", 요청된 사용자 ID: " + authenticatedUserId + ")");

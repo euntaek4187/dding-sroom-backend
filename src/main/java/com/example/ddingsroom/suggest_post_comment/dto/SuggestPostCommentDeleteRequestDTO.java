@@ -10,11 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class SuggestPostCommentDeleteRequestDTO {
-
-    @NotNull(message = "댓글 ID는 필수입니다.")
-    @JsonProperty("comment_id")
-    private Long commentId;
+//
+//    @NotNull(message = "댓글 ID는 필수입니다.")
+//    @JsonProperty("comment_id")
+//    private Long commentId;
 
 }

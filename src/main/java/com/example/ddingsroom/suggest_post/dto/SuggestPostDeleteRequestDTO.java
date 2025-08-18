@@ -10,11 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class SuggestPostDeleteRequestDTO {
-
-    @NotNull(message = "건의 ID는 필수입니다.")
-    @JsonProperty("suggest_id")
-    private Long suggestId;
+//    suggest_id 필드는 json이 아닌 url 경로에서 받으므로 이 부분 제거
+//    @NotNull(message = "건의 ID는 필수입니다.")
+//    @JsonProperty("suggest_id")
+//    private Long suggestId;
 
 }
