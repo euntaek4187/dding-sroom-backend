@@ -28,7 +28,7 @@ public class UserEntity {
     private String role;
     private String state;
     private LocalDateTime registrationDate;
-    
+
     @PrePersist
     protected void onCreate() {
         if (registrationDate == null) {

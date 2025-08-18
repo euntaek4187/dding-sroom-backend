@@ -18,7 +18,7 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Integer> {
     // 시간 범위가 겹치는 예약 검색
     @Query("SELECT r FROM ReservationEntity r WHERE r.room = :room AND r.status = 'RESERVED' " +
-           "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
+            "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
     List<ReservationEntity> findOverlappingReservations(
             @Param("room") RoomEntity room,
             @Param("startTime") LocalDateTime startTime,
@@ -26,7 +26,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
 
     // 같은 방에서 연속된 시간대 예약 검색
     @Query("SELECT r FROM ReservationEntity r WHERE r.user = :user AND r.status = 'RESERVED' " +
-           "AND r.room.id = :roomId AND r.endTime = :startTime")
+            "AND r.room.id = :roomId AND r.endTime = :startTime")
     List<ReservationEntity> findContinuousReservations(
             @Param("user") UserEntity user,
             @Param("roomId") int roomId,
