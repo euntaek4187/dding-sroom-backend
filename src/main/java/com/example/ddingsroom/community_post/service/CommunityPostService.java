@@ -158,4 +158,63 @@ public class CommunityPostService {
         dto.setMessage("성공");
         return dto;
     }
+
+    // CommunityPostService.java에 추가
+
+    // 특정 사용자의 모든 게시글 조회
+    public BaseResponseDTO getPostsByUserId(Long userId) {
+        try {
+            List<CommunityPostEntity> posts = repository.findByUserId(userId);
+            List<CommunityPostResponseDTO> responseDTOs = posts.stream()
+                    .map(this::convertToResponseDTO)
+                    .collect(Collectors.toList());
+
+            String message = String.format("사용자 %d의 게시글 목록 조회 성공 (총 %d개)", userId, responseDTOs.size());
+            return BaseResponseDTO.success(message, responseDTOs);
+        } catch (Exception e) {
+            return BaseResponseDTO.error("사용자 게시글 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    // 특정 사용자의 특정 카테고리 게시글 조회
+    public BaseResponseDTO getPostsByUserIdAndCategory(Long userId, Integer category) {
+        try {
+            List<CommunityPostEntity> posts = repository.findByUserIdAndCategory(userId, category);
+            List<CommunityPostResponseDTO> responseDTOs = posts.stream()
+                    .map(this::convertToResponseDTO)
+                    .collect(Collectors.toList());
+
+            String message = String.format("사용자 %d의 카테고리 %d 게시글 조회 성공 (총 %d개)",
+                    userId, category, responseDTOs.size());
+            return BaseResponseDTO.success(message, responseDTOs);
+        } catch (Exception e) {
+            return BaseResponseDTO.error("사용자별 카테고리 게시글 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    // 특정 사용자의 게시글 조회 (필터링 옵션)
+    public BaseResponseDTO getPostsByUserIdWithFilter(Long userId, Integer category) {
+        try {
+            List<CommunityPostEntity> posts;
+
+            if (category != null) {
+                posts = repository.findByUserIdAndCategory(userId, category);
+            } else {
+                posts = repository.findByUserId(userId);
+            }
+
+            List<CommunityPostResponseDTO> responseDTOs = posts.stream()
+                    .map(this::convertToResponseDTO)
+                    .collect(Collectors.toList());
+
+            String message = category != null ?
+                    String.format("사용자 %d의 카테고리 %d 게시글 조회 성공 (총 %d개)", userId, category, responseDTOs.size()) :
+                    String.format("사용자 %d의 전체 게시글 조회 성공 (총 %d개)", userId, responseDTOs.size());
+
+            return BaseResponseDTO.success(message, responseDTOs);
+        } catch (Exception e) {
+            return BaseResponseDTO.error("사용자 게시글 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
 }

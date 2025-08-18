@@ -1,4 +1,4 @@
-package com.example.ddingsroom.community_post.dto1;
+package com.example.ddingsroom.CommunityPostComment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -21,4 +21,8 @@ public class CommunityPostCommentRequestDTO {
 
     @JsonProperty("comment_content")
     private String commentContent;
+
+    // 대댓글을 위한 부모 댓글 ID 추가
+    @JsonProperty("parent_comment_id")
+    private Long parentCommentId;
 }

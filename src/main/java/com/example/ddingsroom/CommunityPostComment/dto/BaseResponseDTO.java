@@ -1,4 +1,4 @@
-package com.example.ddingsroom.community_post.dto1;
+package com.example.ddingsroom.CommunityPostComment.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +10,7 @@ import lombok.Builder;
 @AllArgsConstructor
 @Builder
 public class BaseResponseDTO {
+
     private String message;
     private String error;
     private Object data;
