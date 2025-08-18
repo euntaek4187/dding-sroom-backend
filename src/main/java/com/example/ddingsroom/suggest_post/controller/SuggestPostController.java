@@ -46,21 +46,14 @@ public class SuggestPostController {
         }
     }
 
-    @PutMapping("/{suggestId}")
-    public ResponseEntity<Map<String, String>> updateSuggestPost(
-            @PathVariable Long suggestId,
-            @Valid @RequestBody SuggestPostUpdateRequestDTO request) {
+    @PutMapping
+    public ResponseEntity<Map<String, String>> updateSuggestPost(@Valid @RequestBody SuggestPostUpdateRequestDTO request) {
 
         Map<String, String> response = new HashMap<>();
 
-        if(!suggestId.equals(request.getSuggestId())) {
-            response.put("error", "요청 경로의 ID와 본문의 ID가 일치하지 않습니다.");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-
         try{
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-            suggestPostSevice.updateSuggestPost(suggestId, request, authenticatedUserId);
+            suggestPostSevice.updateSuggestPost(request, authenticatedUserId);
             response.put("message", "건의가 성공적으로 업데이트되었습니다!");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (SecurityException e) {

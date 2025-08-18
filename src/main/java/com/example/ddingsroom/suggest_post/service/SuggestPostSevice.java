@@ -59,9 +59,9 @@ public class SuggestPostSevice {
     }
 
     @Transactional
-    public SuggestPostEntity updateSuggestPost(Long suggestId, SuggestPostUpdateRequestDTO request, Long authenticatedUserId) {
-        SuggestPostEntity existingPost = suggestPostRepository.findById(suggestId)
-                .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + suggestId));
+    public SuggestPostEntity updateSuggestPost(SuggestPostUpdateRequestDTO request, Long authenticatedUserId) {
+        SuggestPostEntity existingPost = suggestPostRepository.findById(request.getSuggestId())
+                .orElseThrow(() -> new IllegalArgumentException("건의 게시물을 찾을 수 없습니다. ID: " + request.getSuggestId()));
 
         if (!existingPost.getUserId().equals(authenticatedUserId)) {
             throw new SecurityException("게시물 수정 권한이 없습니다.");
