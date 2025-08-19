@@ -5,6 +5,7 @@ import com.example.ddingsroom.suggest_post.dto.SuggestPostResponseDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
+import com.example.ddingsroom.suggest_post_comment.repository.SuggestPostCommentRepository;
 import com.example.ddingsroom.suggest_post.util.SuggestPostCategory;
 import com.example.ddingsroom.suggest_post.util.SuggestPostLocation;
 import jakarta.persistence.criteria.Predicate;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class SuggestPostSevice {
 
     private final SuggestPostRepository suggestPostRepository;
+    private final SuggestPostCommentRepository suggestPostCommentRepository;
 
     private int getCategoryValue(String categoryName) {
         SuggestPostCategory categoryEnum = SuggestPostCategory.fromName(categoryName);
@@ -115,5 +117,34 @@ public class SuggestPostSevice {
         return entities.stream()
                 .map(SuggestPostResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    // 사용자의 모든 건의 게시글과 댓글 삭제 (회원 탈퇴 시 사용)
+    @Transactional
+    public void deleteAllUserSuggestPosts(Long userId) {
+        try {
+            // 사용자의 모든 건의 게시글 ID 조회
+            List<SuggestPostEntity> userPosts = suggestPostRepository.findByUserId(userId);
+            
+            // 각 게시글의 댓글들 삭제
+            for (SuggestPostEntity post : userPosts) {
+                suggestPostCommentRepository.deleteBySuggestPost_Id(post.getId());
+            }
+            
+            // 사용자의 모든 건의 게시글 삭제
+            suggestPostRepository.deleteByUserId(userId);
+        } catch (Exception e) {
+            throw new RuntimeException("사용자 건의 게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    // 사용자의 모든 건의 댓글 삭제 (회원 탈퇴 시 사용)
+    @Transactional  
+    public void deleteAllUserSuggestComments(Long userId) {
+        try {
+            suggestPostCommentRepository.deleteByUserId(userId);
+        } catch (Exception e) {
+            throw new RuntimeException("사용자 건의 댓글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 }

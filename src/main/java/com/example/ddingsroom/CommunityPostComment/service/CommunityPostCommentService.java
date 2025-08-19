@@ -5,8 +5,11 @@ import com.example.ddingsroom.CommunityPostComment.dto.CommunityPostCommentReque
 import com.example.ddingsroom.CommunityPostComment.dto.CommunityPostCommentResponseDTO;
 import com.example.ddingsroom.CommunityPostComment.entity.CommunityPostCommentEntity;
 import com.example.ddingsroom.CommunityPostComment.repository.CommunityPostCommentRepository;
+import com.example.ddingsroom.community_post.repository.CommunityPostRepository;
+import com.example.ddingsroom.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +20,31 @@ import java.util.stream.Collectors;
 public class CommunityPostCommentService {
 
     private final CommunityPostCommentRepository repository;
+    private final CommunityPostRepository postRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CommunityPostCommentService(CommunityPostCommentRepository repository) {
+    public CommunityPostCommentService(CommunityPostCommentRepository repository,
+                                     CommunityPostRepository postRepository,
+                                     UserRepository userRepository) {
         this.repository = repository;
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
     // 댓글 또는 대댓글 생성
     public BaseResponseDTO createComment(CommunityPostCommentRequestDTO dto) {
         try {
+            // 사용자 존재 확인
+            if (!userRepository.existsById(dto.getUserId().intValue())) {
+                return BaseResponseDTO.error("존재하지 않는 사용자입니다.");
+            }
+
+            // 게시글 존재 확인
+            if (!postRepository.existsById(dto.getPostId())) {
+                return BaseResponseDTO.error("존재하지 않는 게시글입니다.");
+            }
+
             // 대댓글인 경우 부모 댓글 존재 여부 확인
             if (dto.getParentCommentId() != null) {
                 Optional<CommunityPostCommentEntity> parentComment = repository.findById(dto.getParentCommentId());
@@ -294,5 +313,15 @@ public class CommunityPostCommentService {
         }
 
         return dto;
+    }
+
+    // 사용자의 모든 댓글 삭제 (회원 탈퇴 시 사용)
+    @Transactional
+    public void deleteAllUserComments(Long userId) {
+        try {
+            repository.deleteByUserId(userId);
+        } catch (Exception e) {
+            throw new RuntimeException("사용자 댓글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 }
