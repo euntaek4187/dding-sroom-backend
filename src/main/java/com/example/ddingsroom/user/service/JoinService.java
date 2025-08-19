@@ -1,5 +1,9 @@
 package com.example.ddingsroom.user.service;
 
+import com.example.ddingsroom.CommunityPostComment.service.CommunityPostCommentService;
+import com.example.ddingsroom.community_post.service.CommunityPostService;
+import com.example.ddingsroom.suggest_post.service.SuggestPostSevice;
+import com.example.ddingsroom.notification.service.NotificationService;
 import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.entity.VerificationCode;
 import com.example.ddingsroom.user.dto.*;
@@ -30,6 +34,10 @@ public class JoinService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RefreshRepository refreshRepository;
     private final ReservationRepository reservationRepository;
+    private final CommunityPostService communityPostService;
+    private final CommunityPostCommentService communityPostCommentService;
+    private final SuggestPostSevice suggestPostService;
+    private final NotificationService notificationService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     // 이메일 정규식 패턴
@@ -43,13 +51,19 @@ public class JoinService {
 
     public JoinService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                        JavaMailSender javaMailSender, VerificationCodeRepository verificationCodeRepository,
-                       RefreshRepository refreshRepository, ReservationRepository reservationRepository) {
+                       RefreshRepository refreshRepository, ReservationRepository reservationRepository, CommunityPostService communityPostService,
+                       CommunityPostCommentService communityPostCommentService, SuggestPostSevice suggestPostService,
+                       NotificationService notificationService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.javaMailSender = javaMailSender;
         this.verificationCodeRepository = verificationCodeRepository;
         this.refreshRepository = refreshRepository;
         this.reservationRepository = reservationRepository;
+        this.communityPostService = communityPostService;
+        this.communityPostCommentService = communityPostCommentService;
+        this.suggestPostService = suggestPostService;
+        this.notificationService = notificationService;
     }
 
     public ResponseEntity<ResponseDTO> joinProcess(JoinDTO joinDTO) {
@@ -291,7 +305,21 @@ public class JoinService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
             }
+            Integer userId = user.getId();
+            Long userIdLong = userId.longValue();
+            
+            // 1. 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
+            communityPostCommentService.deleteAllUserComments(userIdLong);
+            suggestPostService.deleteAllUserSuggestComments(userIdLong);
+            
+            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
+            communityPostService.deleteAllUserPosts(userIdLong);
+            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
 
+            // 3. 사용자의 모든 공지사항 삭제
+            notificationService.deleteAllUserNotifications(userId);
+
+            // 4. 예약 정보 삭제
             reservationRepository.deleteByUser(user);
             refreshRepository.deleteByUsername(email);
             verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
@@ -347,8 +375,20 @@ public class JoinService {
             }
 
             UserEntity user = userOptional.get();
+            Long userIdLong = Long.valueOf(userId);
 
-            // 기존 로직 그대로 유지 - 관련 데이터 삭제
+            // 1. 먼저 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
+            communityPostCommentService.deleteAllUserComments(userIdLong);
+            suggestPostService.deleteAllUserSuggestComments(userIdLong);
+            
+            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
+            communityPostService.deleteAllUserPosts(userIdLong);
+            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
+
+            // 3. 사용자의 모든 공지사항 삭제
+            notificationService.deleteAllUserNotifications(userId);
+
+            // 4. 기존 로직 그대로 유지 - 관련 데이터 삭제
             reservationRepository.deleteByUser(user);
             refreshRepository.deleteByUsername(user.getEmail());
             verificationCodeRepository.findByEmail(user.getEmail()).ifPresent(verificationCodeRepository::delete);

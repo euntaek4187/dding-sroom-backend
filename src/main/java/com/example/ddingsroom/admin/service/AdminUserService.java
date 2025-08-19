@@ -4,6 +4,10 @@ import com.example.ddingsroom.admin.dto.AdminResponseDTO;
 import com.example.ddingsroom.admin.dto.AdminUserDTO;
 import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.repository.UserRepository;
+import com.example.ddingsroom.community_post.service.CommunityPostService;
+import com.example.ddingsroom.CommunityPostComment.service.CommunityPostCommentService;
+import com.example.ddingsroom.suggest_post.service.SuggestPostSevice;
+import com.example.ddingsroom.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +28,22 @@ public class AdminUserService {
     
     private static final Logger logger = LoggerFactory.getLogger(AdminUserService.class);
     private final UserRepository userRepository;
+    private final CommunityPostService communityPostService;
+    private final CommunityPostCommentService communityPostCommentService;
+    private final SuggestPostSevice suggestPostService;
+    private final NotificationService notificationService;
     
     @Autowired
-    public AdminUserService(UserRepository userRepository) {
+    public AdminUserService(UserRepository userRepository,
+                          CommunityPostService communityPostService,
+                          CommunityPostCommentService communityPostCommentService,
+                          SuggestPostSevice suggestPostService,
+                          NotificationService notificationService) {
         this.userRepository = userRepository;
+        this.communityPostService = communityPostService;
+        this.communityPostCommentService = communityPostCommentService;
+        this.suggestPostService = suggestPostService;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -154,7 +170,7 @@ public class AdminUserService {
     }
     
     /**
-     * 사용자 삭제 (주의: 실제 삭제)
+     * 사용자 삭제 (관련 게시글, 댓글도 함께 삭제)
      */
     @Transactional
     public ResponseEntity<AdminResponseDTO> deleteUser(Integer userId) {
@@ -163,7 +179,6 @@ public class AdminUserService {
                 return ResponseEntity.badRequest()
                         .body(AdminResponseDTO.error("올바른 사용자 ID를 입력해주세요."));
             }
-            
             Optional<UserEntity> userOptional = userRepository.findById(userId);
             if (userOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -172,11 +187,24 @@ public class AdminUserService {
             
             UserEntity user = userOptional.get();
             String username = user.getUsername();
+            Long userIdLong = userId.longValue();
             
+            // 1. 먼저 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
+            communityPostCommentService.deleteAllUserComments(userIdLong);
+            suggestPostService.deleteAllUserSuggestComments(userIdLong);
+            
+            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
+            communityPostService.deleteAllUserPosts(userIdLong);
+            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
+            
+            // 3. 사용자의 모든 공지사항 삭제
+            notificationService.deleteAllUserNotifications(userId);
+            
+            // 4. 마지막으로 사용자 계정 삭제
             userRepository.delete(user);
             
             return ResponseEntity.ok(AdminResponseDTO.success(
-                    String.format("사용자 '%s'가 삭제되었습니다.", username)));
+                    String.format("사용자 '%s'와 관련된 모든 데이터가 삭제되었습니다.", username)));
             
         } catch (Exception e) {
             logger.error("사용자 삭제 중 오류 발생: {}", e.getMessage(), e);
