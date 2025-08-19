@@ -42,4 +42,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPostEnti
     // 특정 사용자의 제목으로 검색
     @Query("SELECT p FROM CommunityPostEntity p WHERE p.userId = :userId AND p.title LIKE %:title% ORDER BY p.createdAt DESC")
     List<CommunityPostEntity> findByUserIdAndTitleContaining(@Param("userId") Long userId, @Param("title") String title);
+
+    // 사용자의 모든 게시글 삭제
+    void deleteByUserId(Long userId);
 }
