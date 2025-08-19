@@ -35,4 +35,10 @@ public interface CommunityPostCommentRepository extends JpaRepository<CommunityP
     // 사용자별 댓글 최신순 조회
     @Query("SELECT c FROM CommunityPostCommentEntity c WHERE c.userId = :userId ORDER BY c.createdAt DESC")
     List<CommunityPostCommentEntity> findAllByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+    // 특정 게시글의 모든 댓글 삭제
+    void deleteByPostId(Long postId);
+
+    // 특정 사용자의 모든 댓글 삭제
+    void deleteByUserId(Long userId);
 }
