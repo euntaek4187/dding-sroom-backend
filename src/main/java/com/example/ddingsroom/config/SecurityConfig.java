@@ -63,7 +63,10 @@ public class SecurityConfig {
                                         "http://localhost:3000",
                                         "https://dding-sroom-frontend.vercel.app",
                                         "https://ddingsroom.com",
-                                        "https://www.ddingsroom.com"
+                                        "https://www.ddingsroom.com",
+                                        "https://dding-sroom-frontend-demo.vercel.app/",
+                                        "https://mju.ddingsroom.com",
+                                        "https://www.mju.ddingsroom.com"
                                 )
                         );
                         configuration.setAllowedMethods(Collections.singletonList("*"));
