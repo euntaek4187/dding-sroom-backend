@@ -4,10 +4,6 @@ import com.example.ddingsroom.admin.dto.AdminResponseDTO;
 import com.example.ddingsroom.admin.dto.AdminUserDTO;
 import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.repository.UserRepository;
-import com.example.ddingsroom.community_post.service.CommunityPostService;
-import com.example.ddingsroom.CommunityPostComment.service.CommunityPostCommentService;
-import com.example.ddingsroom.suggest_post.service.SuggestPostSevice;
-import com.example.ddingsroom.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,22 +24,10 @@ public class AdminUserService {
     
     private static final Logger logger = LoggerFactory.getLogger(AdminUserService.class);
     private final UserRepository userRepository;
-    private final CommunityPostService communityPostService;
-    private final CommunityPostCommentService communityPostCommentService;
-    private final SuggestPostSevice suggestPostService;
-    private final NotificationService notificationService;
     
     @Autowired
-    public AdminUserService(UserRepository userRepository,
-                          CommunityPostService communityPostService,
-                          CommunityPostCommentService communityPostCommentService,
-                          SuggestPostSevice suggestPostService,
-                          NotificationService notificationService) {
+    public AdminUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.communityPostService = communityPostService;
-        this.communityPostCommentService = communityPostCommentService;
-        this.suggestPostService = suggestPostService;
-        this.notificationService = notificationService;
     }
     
     /**
@@ -72,7 +56,7 @@ public class AdminUserService {
     /**
      * 특정 사용자 상세 조회
      */
-    public ResponseEntity<?> getUserById(Integer userId) {
+    public ResponseEntity<?> getUserById(Long userId) {
         try {
             if (userId == null || userId <= 0) {
                 return ResponseEntity.badRequest()
@@ -99,7 +83,7 @@ public class AdminUserService {
      * 사용자 상태 변경 (활성화/비활성화)
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> updateUserStatus(Integer userId, String status) {
+    public ResponseEntity<AdminResponseDTO> updateUserStatus(Long userId, String status) {
         try {
             if (userId == null || userId <= 0) {
                 return ResponseEntity.badRequest()
@@ -136,7 +120,7 @@ public class AdminUserService {
      * 사용자 권한 변경
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> updateUserRole(Integer userId, String role) {
+    public ResponseEntity<AdminResponseDTO> updateUserRole(Long userId, String role) {
         try {
             if (userId == null || userId <= 0) {
                 return ResponseEntity.badRequest()
@@ -170,10 +154,10 @@ public class AdminUserService {
     }
     
     /**
-     * 사용자 삭제 (관련 게시글, 댓글도 함께 삭제)
+     * 사용자 삭제 (JPA cascade로 관련 데이터 자동 삭제)
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> deleteUser(Integer userId) {
+    public ResponseEntity<AdminResponseDTO> deleteUser(Long userId) {
         try {
             if (userId == null || userId <= 0) {
                 return ResponseEntity.badRequest()
@@ -187,20 +171,9 @@ public class AdminUserService {
             
             UserEntity user = userOptional.get();
             String username = user.getUsername();
-            Long userIdLong = userId.longValue();
             
-            // 1. 먼저 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
-            communityPostCommentService.deleteAllUserComments(userIdLong);
-            suggestPostService.deleteAllUserSuggestComments(userIdLong);
-            
-            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
-            communityPostService.deleteAllUserPosts(userIdLong);
-            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
-            
-            // 3. 사용자의 모든 공지사항 삭제
-            notificationService.deleteAllUserNotifications(userId);
-            
-            // 4. 마지막으로 사용자 계정 삭제
+            // JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
+            // (예약, 커뮤니티 게시글, 댓글, 건의 게시글, 건의 댓글, 알림 등)
             userRepository.delete(user);
             
             return ResponseEntity.ok(AdminResponseDTO.success(

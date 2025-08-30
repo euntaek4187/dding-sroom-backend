@@ -43,7 +43,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 사용자 정보 추출
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
-        int id = userDetails.getUserEntity().getId();
+        Long id = userDetails.getUserEntity().getId();
         String email = userDetails.getUserEntity().getEmail();
 
         // 역할 정보 추출

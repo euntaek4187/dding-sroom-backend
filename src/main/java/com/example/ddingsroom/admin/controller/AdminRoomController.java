@@ -38,7 +38,7 @@ public class AdminRoomController {
     @Operation(summary = "특정 스터디룸 조회", description = "룸 ID로 특정 스터디룸의 상세 정보를 조회합니다.")
     public ResponseEntity<?> getRoomById(
             @Parameter(description = "스터디룸 ID", required = true)
-            @PathVariable Integer roomId) {
+            @PathVariable Long roomId) {
         logger.info("관리자 - 스터디룸 상세 조회 요청: roomId={}", roomId);
         return adminRoomService.getRoomById(roomId);
     }
@@ -54,7 +54,7 @@ public class AdminRoomController {
     @Operation(summary = "스터디룸 정보 수정", description = "기존 스터디룸의 정보를 수정합니다.")
     public ResponseEntity<AdminResponseDTO> updateRoom(
             @Parameter(description = "스터디룸 ID", required = true)
-            @PathVariable Integer roomId,
+            @PathVariable Long roomId,
             @RequestBody AdminRoomRequestDTO roomRequestDTO) {
         logger.info("관리자 - 스터디룸 수정 요청: roomId={}, roomName={}", roomId, roomRequestDTO.getRoomName());
         return adminRoomService.updateRoom(roomId, roomRequestDTO);
@@ -64,7 +64,7 @@ public class AdminRoomController {
     @Operation(summary = "스터디룸 상태 변경", description = "스터디룸의 상태를 변경합니다 (IDLE/OCCUPIED/MAINTENANCE)")
     public ResponseEntity<AdminResponseDTO> updateRoomStatus(
             @Parameter(description = "스터디룸 ID", required = true)
-            @PathVariable Integer roomId,
+            @PathVariable Long roomId,
             @Parameter(description = "변경할 상태 (IDLE/OCCUPIED/MAINTENANCE)", required = true)
             @RequestParam String status) {
         logger.info("관리자 - 스터디룸 상태 변경 요청: roomId={}, status={}", roomId, status);
@@ -75,7 +75,7 @@ public class AdminRoomController {
     @Operation(summary = "스터디룸 삭제", description = "스터디룸을 시스템에서 삭제합니다.")
     public ResponseEntity<AdminResponseDTO> deleteRoom(
             @Parameter(description = "스터디룸 ID", required = true)
-            @PathVariable Integer roomId) {
+            @PathVariable Long roomId) {
         logger.info("관리자 - 스터디룸 삭제 요청: roomId={}", roomId);
         return adminRoomService.deleteRoom(roomId);
     }
@@ -91,7 +91,7 @@ public class AdminRoomController {
     @Operation(summary = "스터디룸별 예약 현황", description = "특정 스터디룸의 예약 현황을 조회합니다.")
     public ResponseEntity<?> getRoomReservations(
             @Parameter(description = "스터디룸 ID", required = true)
-            @PathVariable Integer roomId) {
+            @PathVariable Long roomId) {
         logger.info("관리자 - 스터디룸별 예약 현황 조회 요청: roomId={}", roomId);
         return adminRoomService.getRoomReservations(roomId);
     }

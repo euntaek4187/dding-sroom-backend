@@ -1,8 +1,8 @@
-package com.example.ddingsroom.CommunityPostComment.controller;
+package com.example.ddingsroom.community_post_comment.controller;
 
-import com.example.ddingsroom.CommunityPostComment.dto.BaseResponseDTO;
-import com.example.ddingsroom.CommunityPostComment.dto.CommunityPostCommentRequestDTO;
-import com.example.ddingsroom.CommunityPostComment.service.CommunityPostCommentService;
+import com.example.ddingsroom.community_post_comment.dto.BaseResponseDTO;
+import com.example.ddingsroom.community_post_comment.dto.CommunityPostCommentRequestDTO;
+import com.example.ddingsroom.community_post_comment.service.CommunityPostCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

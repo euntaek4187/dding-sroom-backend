@@ -26,7 +26,7 @@ import java.time.ZoneId;
 public class ReservationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     
     @ManyToOne
     @JoinColumn(name = "room_id")
@@ -52,5 +52,19 @@ public class ReservationEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public void setUserId(Long userId) {
+    }
+
+    public Long getRoomId() {
+        return room != null ? room.getId() : null;
+    }
+
+    public void setRoomId(Long roomId) {
     }
 }

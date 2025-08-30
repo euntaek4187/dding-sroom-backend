@@ -37,7 +37,7 @@ public class AdminUserController {
     @Operation(summary = "특정 사용자 조회", description = "사용자 ID로 특정 사용자의 상세 정보를 조회합니다.")
     public ResponseEntity<?> getUserById(
             @Parameter(description = "사용자 ID", required = true)
-            @PathVariable Integer userId) {
+            @PathVariable Long userId) {
         logger.info("관리자 - 사용자 상세 조회 요청: userId={}", userId);
         return adminUserService.getUserById(userId);
     }
@@ -46,7 +46,7 @@ public class AdminUserController {
     @Operation(summary = "사용자 상태 변경", description = "특정 사용자의 상태를 변경합니다 (normal/blocked)")
     public ResponseEntity<AdminResponseDTO> updateUserStatus(
             @Parameter(description = "사용자 ID", required = true)
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @Parameter(description = "변경할 상태 (normal/blocked)", required = true)
             @RequestParam String status) {
         logger.info("관리자 - 사용자 상태 변경 요청: userId={}, status={}", userId, status);
@@ -57,7 +57,7 @@ public class AdminUserController {
     @Operation(summary = "사용자 권한 변경", description = "특정 사용자의 권한을 변경합니다 (ROLE_USER/ROLE_ADMIN)")
     public ResponseEntity<AdminResponseDTO> updateUserRole(
             @Parameter(description = "사용자 ID", required = true)
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @Parameter(description = "변경할 권한 (ROLE_USER/ROLE_ADMIN)", required = true)
             @RequestParam String role) {
         logger.info("관리자 - 사용자 권한 변경 요청: userId={}, role={}", userId, role);
@@ -68,7 +68,7 @@ public class AdminUserController {
     @Operation(summary = "사용자 삭제", description = "특정 사용자를 시스템에서 삭제합니다.")
     public ResponseEntity<AdminResponseDTO> deleteUser(
             @Parameter(description = "사용자 ID", required = true)
-            @PathVariable Integer userId) {
+            @PathVariable Long userId) {
         logger.info("관리자 - 사용자 삭제 요청: userId={}", userId);
         return adminUserService.deleteUser(userId);
     }

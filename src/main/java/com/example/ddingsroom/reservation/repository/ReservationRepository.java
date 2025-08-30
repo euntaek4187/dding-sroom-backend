@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 @Repository
-public interface ReservationRepository extends JpaRepository<ReservationEntity, Integer> {
+public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
     // 시간 범위가 겹치는 예약 검색
     @Query("SELECT r FROM ReservationEntity r WHERE r.room = :room AND r.status = 'RESERVED' " +
             "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
@@ -29,7 +29,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
             "AND r.room.id = :roomId AND r.endTime = :startTime")
     List<ReservationEntity> findContinuousReservations(
             @Param("user") UserEntity user,
-            @Param("roomId") int roomId,
+            @Param("roomId") Long roomId,
             @Param("startTime") LocalDateTime startTime);
 
     // 동일 사용자의 동일 시간대 다른 룸 예약 검색

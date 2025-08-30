@@ -35,7 +35,7 @@ public class SecurityUtils {
         if (userEntity == null) {
             throw new IllegalStateException("인증된 사용자(" + username + ")의 정보를 데이터베이스에서 찾을 수 없습니다.");
         }
-        return (long) userEntity.getId();
+        return userEntity.getId();
     }
 
     public boolean isAdmin(Authentication authentication) {

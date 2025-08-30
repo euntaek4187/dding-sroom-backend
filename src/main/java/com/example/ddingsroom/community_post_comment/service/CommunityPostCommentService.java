@@ -1,11 +1,13 @@
-package com.example.ddingsroom.CommunityPostComment.service;
+package com.example.ddingsroom.community_post_comment.service;
 
-import com.example.ddingsroom.CommunityPostComment.dto.BaseResponseDTO;
-import com.example.ddingsroom.CommunityPostComment.dto.CommunityPostCommentRequestDTO;
-import com.example.ddingsroom.CommunityPostComment.dto.CommunityPostCommentResponseDTO;
-import com.example.ddingsroom.CommunityPostComment.entity.CommunityPostCommentEntity;
-import com.example.ddingsroom.CommunityPostComment.repository.CommunityPostCommentRepository;
+import com.example.ddingsroom.community_post_comment.dto.BaseResponseDTO;
+import com.example.ddingsroom.community_post_comment.dto.CommunityPostCommentRequestDTO;
+import com.example.ddingsroom.community_post_comment.dto.CommunityPostCommentResponseDTO;
+import com.example.ddingsroom.community_post_comment.entity.CommunityPostCommentEntity;
+import com.example.ddingsroom.community_post_comment.repository.CommunityPostCommentRepository;
 import com.example.ddingsroom.community_post.repository.CommunityPostRepository;
+import com.example.ddingsroom.community_post.entity.CommunityPostEntity;
+import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,12 +38,14 @@ public class CommunityPostCommentService {
     public BaseResponseDTO createComment(CommunityPostCommentRequestDTO dto) {
         try {
             // 사용자 존재 확인
-            if (!userRepository.existsById(dto.getUserId().intValue())) {
+            UserEntity user = userRepository.findById(dto.getUserId()).orElse(null);
+            if (user == null) {
                 return BaseResponseDTO.error("존재하지 않는 사용자입니다.");
             }
 
             // 게시글 존재 확인
-            if (!postRepository.existsById(dto.getPostId())) {
+            CommunityPostEntity communityPost = postRepository.findById(dto.getPostId()).orElse(null);
+            if (communityPost == null) {
                 return BaseResponseDTO.error("존재하지 않는 게시글입니다.");
             }
 
@@ -58,8 +62,8 @@ public class CommunityPostCommentService {
             }
 
             CommunityPostCommentEntity entity = new CommunityPostCommentEntity();
-            entity.setPostId(dto.getPostId());
-            entity.setUserId(dto.getUserId());
+            entity.setCommunityPost(communityPost);
+            entity.setUser(user);
             entity.setCommentContent(dto.getCommentContent());
             entity.setParentCommentId(dto.getParentCommentId());
 
