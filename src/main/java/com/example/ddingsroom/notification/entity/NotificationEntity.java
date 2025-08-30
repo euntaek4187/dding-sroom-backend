@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.example.ddingsroom.user.entity.UserEntity;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,10 +20,11 @@ public class NotificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(name = "title")
     private String title;
@@ -52,5 +54,12 @@ public class NotificationEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public void setUserId(Long userId) {
     }
 }

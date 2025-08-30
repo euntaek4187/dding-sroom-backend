@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class AdminUserDTO {
-    private Integer id;
+    private Long id;
     private String email;
     private String username;
     private String age;

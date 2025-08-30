@@ -75,7 +75,7 @@ public class ReissueController {
         // 토큰에서 모든 필요한 정보 추출
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
-        int id = jwtUtil.getId(refresh);
+        Long id = jwtUtil.getId(refresh);
         String email = jwtUtil.getEmail(refresh);
 
         //make new JWT

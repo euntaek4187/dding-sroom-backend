@@ -14,9 +14,9 @@ public class ReservationResponseDTO {
 
     @Data
     public static class ReservationDTO {
-        private int id;
-        private int userId;
-        private int roomId;
+        private Long id;
+        private Long userId;
+        private Long roomId;
         private String roomName;
         private LocalDateTime startTime;
         private LocalDateTime endTime;

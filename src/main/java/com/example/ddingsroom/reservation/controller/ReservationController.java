@@ -59,7 +59,7 @@ public class ReservationController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ReservationResponseDTO> getUserReservations(@PathVariable int userId) {
+    public ResponseEntity<ReservationResponseDTO> getUserReservations(@PathVariable Long userId) {
         logger.info("사용자 예약 조회 요청: userId={}", userId);
         
         ReservationResponseDTO response = reservationService.getUserReservations(userId);

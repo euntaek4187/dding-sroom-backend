@@ -8,6 +8,7 @@ import com.example.ddingsroom.notification.entity.NotificationEntity;
 import com.example.ddingsroom.notification.repository.NotificationRepository;
 import com.example.ddingsroom.user.dto.CustomUserDetails;
 import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,10 +24,12 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     private BaseResponseDTO checkAdminPermission() {
@@ -44,7 +47,7 @@ public class NotificationService {
         }
     }
 
-    private Integer getCurrentUserId() {
+    private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return userDetails.getUserEntity().getId();
@@ -65,8 +68,12 @@ public class NotificationService {
                 return BaseResponseDTO.error("내용은 필수 입력 항목입니다.");
             }
 
+            Long currentUserId = getCurrentUserId();
+            UserEntity user = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + currentUserId));
+
             NotificationEntity entity = new NotificationEntity();
-            entity.setUserId(getCurrentUserId());
+            entity.setUser(user);
             entity.setTitle(dto.getTitle());
             entity.setContent(dto.getContent());
 
@@ -118,7 +125,7 @@ public class NotificationService {
         }
     }
 
-    public BaseResponseDTO deleteNotification(Integer notificationId) {
+    public BaseResponseDTO deleteNotification(Long notificationId) {
         try {
             BaseResponseDTO permissionCheck = checkAdminPermission();
             if (permissionCheck != null) {
@@ -151,7 +158,7 @@ public class NotificationService {
         }
     }
 
-    public BaseResponseDTO getNotification(Integer id) {
+    public BaseResponseDTO getNotification(Long id) {
         try {
             Optional<NotificationEntity> optional = notificationRepository.findById(id);
             if (optional.isPresent()) {
@@ -166,7 +173,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public BaseResponseDTO incrementViewCount(Integer notificationId) {
+    public BaseResponseDTO incrementViewCount(Long notificationId) {
         try {
             Optional<NotificationEntity> optional = notificationRepository.findById(notificationId);
             if (optional.isEmpty()) {
@@ -208,13 +215,10 @@ public class NotificationService {
         return dto;
     }
 
-    // 사용자의 모든 공지사항 삭제 (회원 탈퇴 시 사용)
+    // 사용자의 모든 공지사항 삭제 (JPA cascade로 자동 삭제됨)
     @Transactional
-    public void deleteAllUserNotifications(Integer userId) {
-        try {
-            notificationRepository.deleteByUserId(userId);
-        } catch (Exception e) {
-            throw new RuntimeException("사용자 공지사항 삭제 중 오류가 발생했습니다: " + e.getMessage());
-        }
+    public void deleteAllUserNotifications(Long userId) {
+        // 이 메서드는 더 이상 필요하지 않습니다.
+        // UserEntity 삭제 시 JPA cascade를 통해 자동으로 삭제됩니다.
     }
 }

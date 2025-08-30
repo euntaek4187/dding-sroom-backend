@@ -8,6 +8,8 @@ import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentUpdateR
 import com.example.ddingsroom.suggest_post_comment.dto.SuggestPostCommentDeleteRequestDTO;
 import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
 import com.example.ddingsroom.suggest_post_comment.repository.SuggestPostCommentRepository;
+import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class SuggestPostCommentService {
 
     private final SuggestPostCommentRepository suggestPostCommentRepository;
     private final SuggestPostRepository suggestPostRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public void createComment(SuggestPostCommentCreateRequestDTO request, Long authenticatedUserId) {
@@ -31,9 +34,12 @@ public class SuggestPostCommentService {
             throw new IllegalArgumentException("해당 건의 게시물(ID: " + request.getSuggestPostId() + ")에는 이미 댓글이 존재합니다.");
         }
 
+        UserEntity user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + authenticatedUserId));
+
         SuggestPostCommentEntity newComment = new SuggestPostCommentEntity(
                 suggestPost,
-                authenticatedUserId,
+                user,
                 request.getAnswerContent()
         );
 

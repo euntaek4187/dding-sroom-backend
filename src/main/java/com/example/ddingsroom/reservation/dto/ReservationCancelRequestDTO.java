@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ReservationCancelRequestDTO {
-    private int userId;
-    private int reservationId;
+    private Long userId;
+    private Long reservationId;
 }
