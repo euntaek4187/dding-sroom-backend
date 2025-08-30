@@ -58,7 +58,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰에서 모든 사용자 정보 추출
         String username = jwtUtil.getUsername(accessToken);
         String role = jwtUtil.getRole(accessToken);
-        int id = jwtUtil.getId(accessToken);
+        Long id = jwtUtil.getId(accessToken);
         String email = jwtUtil.getEmail(accessToken);
 
         System.out.println("JWTFilter: Setting authentication for " + username + " with role " + role);

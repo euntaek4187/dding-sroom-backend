@@ -17,7 +17,7 @@ import lombok.Setter;
 public class RoomEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String roomName;
     private String roomStatus;
 }

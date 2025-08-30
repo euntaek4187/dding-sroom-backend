@@ -60,7 +60,7 @@ public class AdminRoomService {
     /**
      * 특정 스터디룸 상세 조회
      */
-    public ResponseEntity<?> getRoomById(Integer roomId) {
+    public ResponseEntity<?> getRoomById(Long roomId) {
         try {
             if (roomId == null || roomId <= 0) {
                 return ResponseEntity.badRequest()
@@ -130,7 +130,7 @@ public class AdminRoomService {
      * 스터디룸 정보 수정
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> updateRoom(Integer roomId, AdminRoomRequestDTO roomRequestDTO) {
+    public ResponseEntity<AdminResponseDTO> updateRoom(Long roomId, AdminRoomRequestDTO roomRequestDTO) {
         try {
             if (roomId == null || roomId <= 0) {
                 return ResponseEntity.badRequest()
@@ -188,7 +188,7 @@ public class AdminRoomService {
      * 스터디룸 상태 변경
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> updateRoomStatus(Integer roomId, String status) {
+    public ResponseEntity<AdminResponseDTO> updateRoomStatus(Long roomId, String status) {
         try {
             if (roomId == null || roomId <= 0) {
                 return ResponseEntity.badRequest()
@@ -225,7 +225,7 @@ public class AdminRoomService {
      * 스터디룸 삭제
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> deleteRoom(Integer roomId) {
+    public ResponseEntity<AdminResponseDTO> deleteRoom(Long roomId) {
         try {
             if (roomId == null || roomId <= 0) {
                 return ResponseEntity.badRequest()
@@ -313,7 +313,7 @@ public class AdminRoomService {
     /**
      * 특정 스터디룸의 예약 현황 조회
      */
-    public ResponseEntity<?> getRoomReservations(Integer roomId) {
+    public ResponseEntity<?> getRoomReservations(Long roomId) {
         try {
             if (roomId == null || roomId <= 0) {
                 return ResponseEntity.badRequest()

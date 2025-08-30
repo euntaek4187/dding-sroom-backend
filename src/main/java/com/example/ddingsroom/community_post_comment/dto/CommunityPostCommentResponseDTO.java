@@ -1,4 +1,4 @@
-package com.example.ddingsroom.CommunityPostComment.dto;
+package com.example.ddingsroom.community_post_comment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

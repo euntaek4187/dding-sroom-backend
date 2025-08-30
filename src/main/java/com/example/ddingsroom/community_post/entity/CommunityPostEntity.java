@@ -5,8 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.community_post_comment.entity.CommunityPostCommentEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,8 +24,9 @@ public class CommunityPostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(name = "post-title")
     private String title;
@@ -35,8 +40,11 @@ public class CommunityPostEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "cetegory") // 테이블의 오타에 맞춤
+    @Column(name = "cetegory")
     private Integer category;
+
+    @OneToMany(mappedBy = "communityPost", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CommunityPostCommentEntity> comments = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -47,5 +55,12 @@ public class CommunityPostEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public void setUserId(Long userId) {
     }
 }

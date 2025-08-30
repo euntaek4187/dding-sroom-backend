@@ -5,8 +5,9 @@ import com.example.ddingsroom.suggest_post.dto.SuggestPostResponseDTO;
 import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
-import com.example.ddingsroom.suggest_post_comment.repository.SuggestPostCommentRepository;
 import com.example.ddingsroom.suggest_post.util.SuggestPostCategory;
+import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.user.repository.UserRepository;
 import com.example.ddingsroom.suggest_post.util.SuggestPostLocation;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 public class SuggestPostSevice {
 
     private final SuggestPostRepository suggestPostRepository;
-    private final SuggestPostCommentRepository suggestPostCommentRepository;
+    private final UserRepository userRepository;
 
     private int getCategoryValue(String categoryName) {
         SuggestPostCategory categoryEnum = SuggestPostCategory.fromName(categoryName);
@@ -50,8 +51,11 @@ public class SuggestPostSevice {
         int categoryValue = getCategoryValue(request.getCategory());
         int locationValue = getLocationValue(request.getLocation());
 
+        UserEntity user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + authenticatedUserId));
+
         SuggestPostEntity newPost = new SuggestPostEntity(
-                authenticatedUserId,
+                user,
                 request.getSuggestTitle(),
                 request.getSuggestContent(),
                 categoryValue,
@@ -119,32 +123,21 @@ public class SuggestPostSevice {
                 .collect(Collectors.toList());
     }
 
-    // 사용자의 모든 건의 게시글과 댓글 삭제 (회원 탈퇴 시 사용)
+    // 사용자의 모든 건의 게시글 삭제 (JPA cascade로 댓글 자동 삭제)
     @Transactional
     public void deleteAllUserSuggestPosts(Long userId) {
         try {
-            // 사용자의 모든 건의 게시글 ID 조회
-            List<SuggestPostEntity> userPosts = suggestPostRepository.findByUserId(userId);
-            
-            // 각 게시글의 댓글들 삭제
-            for (SuggestPostEntity post : userPosts) {
-                suggestPostCommentRepository.deleteBySuggestPost_Id(post.getId());
-            }
-            
-            // 사용자의 모든 건의 게시글 삭제
+            // JPA cascade를 통해 관련된 모든 댓글이 자동으로 삭제됩니다
             suggestPostRepository.deleteByUserId(userId);
         } catch (Exception e) {
             throw new RuntimeException("사용자 건의 게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
-    // 사용자의 모든 건의 댓글 삭제 (회원 탈퇴 시 사용)
+    // 사용자의 모든 건의 댓글 삭제 (JPA cascade로 자동 삭제됨)
     @Transactional  
     public void deleteAllUserSuggestComments(Long userId) {
-        try {
-            suggestPostCommentRepository.deleteByUserId(userId);
-        } catch (Exception e) {
-            throw new RuntimeException("사용자 건의 댓글 삭제 중 오류가 발생했습니다: " + e.getMessage());
-        }
+        // 이 메서드는 더 이상 필요하지 않습니다.
+        // UserEntity 삭제 시 JPA cascade를 통해 자동으로 삭제됩니다.
     }
 }

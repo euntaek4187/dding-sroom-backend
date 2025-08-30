@@ -1,10 +1,12 @@
-package com.example.ddingsroom.CommunityPostComment.entity;
+package com.example.ddingsroom.community_post_comment.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.community_post.entity.CommunityPostEntity;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,16 +22,17 @@ public class CommunityPostCommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "post_id", nullable = false)
-    private Long postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private CommunityPostEntity communityPost;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(name = "comment_content")
     private String commentContent;
 
-    // 대댓글을 위한 부모 댓글 ID (nullable)
     @Column(name = "parent_comment_id")
     private Long parentCommentId;
 
@@ -39,12 +42,10 @@ public class CommunityPostCommentEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 부모 댓글 참조 (optional)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id", insertable = false, updatable = false)
     private CommunityPostCommentEntity parentComment;
 
-    // 자식 댓글들 (대댓글들)
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     private List<CommunityPostCommentEntity> replies;
 
@@ -57,5 +58,19 @@ public class CommunityPostCommentEntity {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public Long getPostId() {
+        return communityPost != null ? communityPost.getId() : null;
+    }
+
+    public void setPostId(Long postId) {
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public void setUserId(Long userId) {
     }
 }

@@ -5,7 +5,7 @@ import com.example.ddingsroom.community_post.dto.CommunityPostRequestDTO;
 import com.example.ddingsroom.community_post.dto.CommunityPostResponseDTO;
 import com.example.ddingsroom.community_post.entity.CommunityPostEntity;
 import com.example.ddingsroom.community_post.repository.CommunityPostRepository;
-import com.example.ddingsroom.CommunityPostComment.repository.CommunityPostCommentRepository;
+import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,15 +20,12 @@ import java.util.stream.Collectors;
 public class CommunityPostService {
 
     private final CommunityPostRepository repository;
-    private final CommunityPostCommentRepository commentRepository;
     private final UserRepository userRepository;
 
     @Autowired
     public CommunityPostService(CommunityPostRepository repository, 
-                              CommunityPostCommentRepository commentRepository,
                               UserRepository userRepository) {
         this.repository = repository;
-        this.commentRepository = commentRepository;
         this.userRepository = userRepository;
     }
 
@@ -36,12 +33,14 @@ public class CommunityPostService {
     public BaseResponseDTO createCommunityPost(CommunityPostRequestDTO dto) {
         try {
             // 사용자 존재 확인
-            if (!userRepository.existsById(dto.getUserId().intValue())) {
+            UserEntity user = userRepository.findById(dto.getUserId())
+                    .orElse(null);
+            if (user == null) {
                 return BaseResponseDTO.error("존재하지 않는 사용자입니다.");
             }
 
             CommunityPostEntity entity = new CommunityPostEntity();
-            entity.setUserId(dto.getUserId());
+            entity.setUser(user);
             entity.setTitle(dto.getTitle());
             entity.setContent(dto.getContent());
             entity.setCategory(dto.getCategory());
@@ -83,7 +82,7 @@ public class CommunityPostService {
         }
     }
 
-    // 게시글 삭제 (댓글도 함께 삭제)
+    // 게시글 삭제 (JPA cascade로 댓글 자동 삭제)
     @Transactional
     public BaseResponseDTO deleteCommunityPost(CommunityPostRequestDTO dto) {
         try {
@@ -97,9 +96,7 @@ public class CommunityPostService {
                 return BaseResponseDTO.error("작성자만 삭제할 수 있습니다.");
             }
 
-            // 먼저 댓글들을 삭제
-            commentRepository.deleteByPostId(dto.getPostId());
-            // 그 다음 게시글 삭제
+            // JPA cascade를 통해 관련된 모든 댓글이 자동으로 삭제됩니다
             repository.deleteById(dto.getPostId());
             
             return BaseResponseDTO.success("게시글이 성공적으로 삭제되었습니다!");
@@ -236,19 +233,11 @@ public class CommunityPostService {
         }
     }
 
-    // 사용자의 모든 게시글과 댓글 삭제 (회원 탈퇴 시 사용)
+    // 사용자의 모든 게시글 삭제 (JPA cascade로 댓글 자동 삭제)
     @Transactional
     public void deleteAllUserPosts(Long userId) {
         try {
-            // 사용자의 모든 게시글 ID 조회
-            List<CommunityPostEntity> userPosts = repository.findByUserId(userId);
-            
-            // 각 게시글의 댓글들 삭제
-            for (CommunityPostEntity post : userPosts) {
-                commentRepository.deleteByPostId(post.getId());
-            }
-            
-            // 사용자의 모든 게시글 삭제
+            // JPA cascade를 통해 관련된 모든 댓글이 자동으로 삭제됩니다
             repository.deleteByUserId(userId);
         } catch (Exception e) {
             throw new RuntimeException("사용자 게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());

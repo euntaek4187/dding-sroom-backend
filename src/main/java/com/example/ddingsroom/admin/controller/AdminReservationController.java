@@ -40,7 +40,7 @@ public class AdminReservationController {
     @Operation(summary = "특정 예약 조회", description = "예약 ID로 특정 예약의 상세 정보를 조회합니다.")
     public ResponseEntity<?> getReservationById(
             @Parameter(description = "예약 ID", required = true)
-            @PathVariable Integer reservationId) {
+            @PathVariable Long reservationId) {
         logger.info("관리자 - 예약 상세 조회 요청: reservationId={}", reservationId);
         return adminReservationService.getReservationById(reservationId);
     }
@@ -49,7 +49,7 @@ public class AdminReservationController {
     @Operation(summary = "예약 강제 취소", description = "관리자 권한으로 특정 예약을 강제 취소합니다.")
     public ResponseEntity<AdminResponseDTO> forceCancelReservation(
             @Parameter(description = "예약 ID", required = true)
-            @PathVariable Integer reservationId) {
+            @PathVariable Long reservationId) {
         logger.info("관리자 - 예약 강제 취소 요청: reservationId={}", reservationId);
         return adminReservationService.forceCancelReservation(reservationId);
     }
@@ -94,7 +94,7 @@ public class AdminReservationController {
     @Operation(summary = "특정 사용자 예약 조회", description = "특정 사용자의 모든 예약을 조회합니다.")
     public ResponseEntity<?> getReservationsByUserId(
             @Parameter(description = "사용자 ID", required = true)
-            @PathVariable Integer userId) {
+            @PathVariable Long userId) {
         logger.info("관리자 - 사용자별 예약 조회 요청: userId={}", userId);
         return adminReservationService.getReservationsByUserId(userId);
     }

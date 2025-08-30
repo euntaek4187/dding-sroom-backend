@@ -1,6 +1,6 @@
 package com.example.ddingsroom.user.service;
 
-import com.example.ddingsroom.CommunityPostComment.service.CommunityPostCommentService;
+import com.example.ddingsroom.community_post_comment.service.CommunityPostCommentService;
 import com.example.ddingsroom.community_post.service.CommunityPostService;
 import com.example.ddingsroom.suggest_post.service.SuggestPostSevice;
 import com.example.ddingsroom.notification.service.NotificationService;
@@ -241,7 +241,7 @@ public class JoinService {
         return pattern.matcher(email).matches();
     }
 
-    public ResponseEntity<?> getMyPage(Integer userId) {
+    public ResponseEntity<?> getMyPage(Long userId) {
         try {
             if (userId == null) {
                 return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
@@ -305,25 +305,13 @@ public class JoinService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
             }
-            Integer userId = user.getId();
-            Long userIdLong = userId.longValue();
-            
-            // 1. 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
-            communityPostCommentService.deleteAllUserComments(userIdLong);
-            suggestPostService.deleteAllUserSuggestComments(userIdLong);
-            
-            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
-            communityPostService.deleteAllUserPosts(userIdLong);
-            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
 
-            // 3. 사용자의 모든 공지사항 삭제
-            notificationService.deleteAllUserNotifications(userId);
-
-            // 4. 예약 정보 삭제
-            reservationRepository.deleteByUser(user);
+            // JPA cascade로 자동 삭제되지 않는 데이터만 수동으로 삭제
+            // (refresh token, verification code는 User와 직접적인 JPA 관계가 없음)
             refreshRepository.deleteByUsername(email);
             verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
 
+            // UserEntity 삭제 - JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
             userRepository.delete(user);
 
             return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
@@ -366,7 +354,7 @@ public class JoinService {
     }
 
     @Transactional
-    public ResponseEntity<ResponseDTO> withdrawUserById(int userId) {
+    public ResponseEntity<ResponseDTO> withdrawUserById(Long userId) {
         try {
             Optional<UserEntity> userOptional = userRepository.findById(userId);
             if (userOptional.isEmpty()) {
@@ -375,24 +363,14 @@ public class JoinService {
             }
 
             UserEntity user = userOptional.get();
-            Long userIdLong = Long.valueOf(userId);
 
-            // 1. 먼저 사용자의 모든 댓글 삭제 (커뮤니티 + 건의)
-            communityPostCommentService.deleteAllUserComments(userIdLong);
-            suggestPostService.deleteAllUserSuggestComments(userIdLong);
-            
-            // 2. 사용자의 모든 게시글과 관련 댓글 삭제 (커뮤니티 + 건의)
-            communityPostService.deleteAllUserPosts(userIdLong);
-            suggestPostService.deleteAllUserSuggestPosts(userIdLong);
-
-            // 3. 사용자의 모든 공지사항 삭제
-            notificationService.deleteAllUserNotifications(userId);
-
-            // 4. 기존 로직 그대로 유지 - 관련 데이터 삭제
-            reservationRepository.deleteByUser(user);
+            // JPA cascade로 자동 삭제되지 않는 데이터만 수동으로 삭제
+            // (refresh token, verification code는 User와 직접적인 JPA 관계가 없음)
             refreshRepository.deleteByUsername(user.getEmail());
             verificationCodeRepository.findByEmail(user.getEmail()).ifPresent(verificationCodeRepository::delete);
 
+            // UserEntity 삭제 - JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
+            // (예약, 커뮤니티 게시글, 댓글, 건의 게시글, 건의 댓글, 알림 등)
             userRepository.delete(user);
 
             return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
