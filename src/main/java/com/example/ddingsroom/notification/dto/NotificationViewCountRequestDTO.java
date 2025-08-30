@@ -10,5 +10,5 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationViewCountRequestDTO {
-    private Integer notificationId;
+    private Long notificationId;
 }

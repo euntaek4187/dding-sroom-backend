@@ -1,6 +1,7 @@
 package com.example.ddingsroom.suggest_post_comment.entity;
 
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
+import com.example.ddingsroom.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,8 +26,9 @@ public class SuggestPostCommentEntity {
     @JoinColumn(name = "suggest_post_id", nullable = false, unique = true)
     private SuggestPostEntity suggestPost;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(name = "answer_content", nullable = false, columnDefinition = "TEXT")
     private String answerContent;
@@ -37,9 +39,9 @@ public class SuggestPostCommentEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SuggestPostCommentEntity(SuggestPostEntity suggestPost, Long userId, String answerContent) {
+    public SuggestPostCommentEntity(SuggestPostEntity suggestPost, UserEntity user, String answerContent) {
         this.suggestPost = suggestPost;
-        this.userId = userId;
+        this.user = user;
         this.answerContent = answerContent;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -54,6 +56,13 @@ public class SuggestPostCommentEntity {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public void setUserId(Long userId) {
     }
 
 }

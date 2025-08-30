@@ -246,7 +246,7 @@ public class ReservationService {
     }
     
     @Transactional(readOnly = true)
-    public ReservationResponseDTO getUserReservations(int userId) {
+    public ReservationResponseDTO getUserReservations(Long userId) {
         try {
             UserEntity user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));

@@ -2,7 +2,10 @@ package com.example.ddingsroom.suggest_post_comment.repository;
 
 import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,7 +14,9 @@ public interface SuggestPostCommentRepository extends JpaRepository<SuggestPostC
     List<SuggestPostCommentEntity> findAllBySuggestPost_Id(Long suggestPostId);
     
     // 사용자의 모든 건의 댓글 삭제
-    void deleteByUserId(Long userId);
+    @Transactional
+    @Query("DELETE FROM SuggestPostCommentEntity s WHERE s.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
     
     // 특정 게시글의 모든 댓글 삭제
     void deleteBySuggestPost_Id(Long suggestPostId);

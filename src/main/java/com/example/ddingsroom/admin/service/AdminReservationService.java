@@ -65,7 +65,7 @@ public class AdminReservationService {
     /**
      * 특정 예약 상세 조회
      */
-    public ResponseEntity<?> getReservationById(Integer reservationId) {
+    public ResponseEntity<?> getReservationById(Long reservationId) {
         try {
             if (reservationId == null || reservationId <= 0) {
                 return ResponseEntity.badRequest()
@@ -94,7 +94,7 @@ public class AdminReservationService {
      * 예약 강제 취소 (관리자 권한)
      */
     @Transactional
-    public ResponseEntity<AdminResponseDTO> forceCancelReservation(Integer reservationId) {
+    public ResponseEntity<AdminResponseDTO> forceCancelReservation(Long reservationId) {
         try {
             if (reservationId == null || reservationId <= 0) {
                 return ResponseEntity.badRequest()
@@ -307,7 +307,7 @@ public class AdminReservationService {
     /**
      * 특정 사용자의 예약 목록 조회
      */
-    public ResponseEntity<?> getReservationsByUserId(Integer userId) {
+    public ResponseEntity<?> getReservationsByUserId(Long userId) {
         try {
             if (userId == null || userId <= 0) {
                 return ResponseEntity.badRequest()

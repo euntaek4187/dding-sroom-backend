@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class MyPageDTO {
-    private Integer id;
+    private Long id;
     private String email;
     private String username;
     private String age;

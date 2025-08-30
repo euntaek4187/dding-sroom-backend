@@ -48,7 +48,7 @@ public class JoinController {
     }
 
     @GetMapping("/mypage/{userId}")
-    public ResponseEntity<?> getMyPage(@PathVariable Integer userId) {
+    public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
         return joinService.getMyPage(userId);
     }
 
@@ -77,7 +77,7 @@ public class JoinController {
         // 인증된 사용자 정보 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        int userId = userDetails.getUserEntity().getId();
+        Long userId = userDetails.getUserEntity().getId();
         
         return joinService.withdrawUserById(userId);
     }
