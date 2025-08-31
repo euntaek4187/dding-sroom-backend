@@ -36,14 +36,8 @@ public class SuggestPostImageController {
             @RequestPart("image_file") MultipartFile imageFile) {
 
         Map<String, Object> response = new HashMap<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-
-            if (!securityUtils.isAdmin(authentication)) {
-                response.put("error", "관리자만 이미지를 업로드할 수 있습니다.");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-            }
 
             SuggestPostImageResponseDTO uploadedImage = suggestPostImageService.uploadImage(request.getSuggestPostId(), authenticatedUserId, imageFile);
 
@@ -69,15 +63,8 @@ public class SuggestPostImageController {
     @DeleteMapping("/{imageId}")
     public ResponseEntity<Map<String, String>> deleteSuggestImage(@PathVariable Long imageId) {
         Map<String, String> response = new HashMap<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         try {
             Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
-
-            if (!securityUtils.isAdmin(authentication)) {
-                response.put("error", "관리자만 이미지를 삭제할 수 있습니다.");
-                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-            }
 
             suggestPostImageService.deleteImage(imageId, authenticatedUserId);
 
