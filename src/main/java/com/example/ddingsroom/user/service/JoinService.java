@@ -306,12 +306,9 @@ public class JoinService {
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
             }
 
-            // JPA cascade로 자동 삭제되지 않는 데이터만 수동으로 삭제
-            // (refresh token, verification code는 User와 직접적인 JPA 관계가 없음)
             refreshRepository.deleteByUsername(email);
             verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
 
-            // UserEntity 삭제 - JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
             userRepository.delete(user);
 
             return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
