@@ -11,8 +11,7 @@ public enum SuggestPostLocation {
     STUDY_ROOM_2(2, "스터디룸2"),
     STUDY_ROOM_3(3, "스터디룸3"),
     STUDY_ROOM_4(4, "스터디룸4"),
-    STUDY_ROOM_5(5, "스터디룸5"),
-    ETC(6, "기타");
+    STUDY_ROOM_5(5, "스터디룸5");
 
     private final int value;
     private final String name;
