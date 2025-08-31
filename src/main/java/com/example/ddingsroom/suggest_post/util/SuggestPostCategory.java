@@ -7,11 +7,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public enum SuggestPostCategory {
-    REPORT(0, "신고"),
+    REPORT(0, "미예약 사용자 신고"),
     LOST_AND_FOUND(1, "분실물"),
-    EQUIPMENT_DAMAGE(2, "기물파손"),
-    FACILITY_BREAKDOWN(3, "시설고장"),
-    NOISE_POLLUTION(4, "소음공해"),
+    EQUIPMENT_DAMAGE(2, "기물 파손"),
+    FACILITY_BREAKDOWN(3, "시설 고장"),
+    NOISE_POLLUTION(4, "소음 공해"),
     ETC(5, "기타");
 
 
