@@ -59,7 +59,7 @@ public class ReservationController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ReservationResponseDTO> getUserReservations(@PathVariable int userId) {
+    public ResponseEntity<ReservationResponseDTO> getUserReservations(@PathVariable Long userId) {
         logger.info("사용자 예약 조회 요청: userId={}", userId);
         
         ReservationResponseDTO response = reservationService.getUserReservations(userId);
@@ -76,6 +76,16 @@ public class ReservationController {
 
         logger.info("전체 예약 조회 완료: count={}",
                 response.getReservations() != null ? response.getReservations().size() : 0);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/crowding-level")
+    public ResponseEntity<BaseResponseDTO> getCurrentCrowdingLevel() {
+        logger.info("실시간 혼잡도 조회 요청");
+        
+        BaseResponseDTO response = reservationService.getCurrentCrowdingLevel();
+        
+        logger.info("실시간 혼잡도 조회 완료: {}", response.getMessage());
         return ResponseEntity.ok(response);
     }
 }

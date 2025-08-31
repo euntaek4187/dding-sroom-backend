@@ -28,8 +28,8 @@ public class JWTUtil {
     }
 
     // 새로 추가된 메소드: 토큰에서 ID 추출
-    public int getId(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("id", Integer.class);
+    public Long getId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("id", Long.class);
     }
 
     // 새로 추가된 메소드: 토큰에서 이메일 추출
@@ -42,7 +42,7 @@ public class JWTUtil {
     }
 
     // 메소드 시그니처 변경: ID와 이메일 파라미터 추가
-    public String createJwt(String category, String username, String role, int id, String email, Long expiredMs) {
+    public String createJwt(String category, String username, String role, Long id, String email, Long expiredMs) {
         return Jwts.builder()
                 .claim("category", category)
                 .claim("username", username)

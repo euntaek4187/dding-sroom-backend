@@ -1,5 +1,9 @@
 package com.example.ddingsroom.user.service;
 
+import com.example.ddingsroom.community_post_comment.service.CommunityPostCommentService;
+import com.example.ddingsroom.community_post.service.CommunityPostService;
+import com.example.ddingsroom.suggest_post.service.SuggestPostSevice;
+import com.example.ddingsroom.notification.service.NotificationService;
 import com.example.ddingsroom.user.entity.UserEntity;
 import com.example.ddingsroom.user.entity.VerificationCode;
 import com.example.ddingsroom.user.dto.*;
@@ -30,6 +34,10 @@ public class JoinService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RefreshRepository refreshRepository;
     private final ReservationRepository reservationRepository;
+    private final CommunityPostService communityPostService;
+    private final CommunityPostCommentService communityPostCommentService;
+    private final SuggestPostSevice suggestPostService;
+    private final NotificationService notificationService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     // 이메일 정규식 패턴
@@ -43,13 +51,19 @@ public class JoinService {
 
     public JoinService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                        JavaMailSender javaMailSender, VerificationCodeRepository verificationCodeRepository,
-                       RefreshRepository refreshRepository, ReservationRepository reservationRepository) {
+                       RefreshRepository refreshRepository, ReservationRepository reservationRepository, CommunityPostService communityPostService,
+                       CommunityPostCommentService communityPostCommentService, SuggestPostSevice suggestPostService,
+                       NotificationService notificationService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.javaMailSender = javaMailSender;
         this.verificationCodeRepository = verificationCodeRepository;
         this.refreshRepository = refreshRepository;
         this.reservationRepository = reservationRepository;
+        this.communityPostService = communityPostService;
+        this.communityPostCommentService = communityPostCommentService;
+        this.suggestPostService = suggestPostService;
+        this.notificationService = notificationService;
     }
 
     public ResponseEntity<ResponseDTO> joinProcess(JoinDTO joinDTO) {
@@ -138,6 +152,16 @@ public class JoinService {
             if (verificationCodeOptional.isPresent()) {
                 VerificationCode verificationCode = verificationCodeOptional.get();
 
+                // 인증코드 만료 시간 체크 (5분 = 300초)
+                LocalDateTime publishedTime = verificationCode.getPublishedDate();
+                LocalDateTime currentTime = LocalDateTime.now();
+                long minutesDifference = java.time.Duration.between(publishedTime, currentTime).toMinutes();
+
+                if (minutesDifference > 5) {
+                    verificationCodeRepository.delete(verificationCode);
+                    return ResponseEntity.badRequest().body(new ResponseDTO("인증코드가 만료되었습니다."));
+                }
+
                 if (verificationCode.getCode().equals(code)) {
                     verificationCodeRepository.delete(verificationCode);
                     return ResponseEntity.ok(new ResponseDTO("이메일 인증이 성공적으로 완료되었습니다."));
@@ -217,7 +241,7 @@ public class JoinService {
         return pattern.matcher(email).matches();
     }
 
-    public ResponseEntity<?> getMyPage(Integer userId) {
+    public ResponseEntity<?> getMyPage(Long userId) {
         try {
             if (userId == null) {
                 return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
@@ -282,7 +306,6 @@ public class JoinService {
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
             }
 
-            reservationRepository.deleteByUser(user);
             refreshRepository.deleteByUsername(email);
             verificationCodeRepository.findByEmail(email).ifPresent(verificationCodeRepository::delete);
 
@@ -293,6 +316,84 @@ public class JoinService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDTO("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    public ResponseEntity<ResponseDTO> changeUsername(com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
+        try {
+            if (changeUsernameDTO.getUserId() == null) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
+            }
+            if (!StringUtils.hasText(changeUsernameDTO.getNewUsername())) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("새 사용자명을 입력해주세요."));
+            }
+
+            Optional<UserEntity> userEntityOptional = userRepository.findById(changeUsernameDTO.getUserId());
+            if (userEntityOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            if (userRepository.existsByUsername(changeUsernameDTO.getNewUsername())) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("중복된 이름입니다."));
+            }
+
+            UserEntity user = userEntityOptional.get();
+            user.setUsername(changeUsernameDTO.getNewUsername());
+            userRepository.save(user);
+
+            return ResponseEntity.ok(new ResponseDTO("사용자명이 성공적으로 변경되었습니다."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("사용자명 변경 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<ResponseDTO> withdrawUserById(Long userId) {
+        try {
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));
+            }
+
+            UserEntity user = userOptional.get();
+
+            // JPA cascade로 자동 삭제되지 않는 데이터만 수동으로 삭제
+            // (refresh token, verification code는 User와 직접적인 JPA 관계가 없음)
+            refreshRepository.deleteByUsername(user.getEmail());
+            verificationCodeRepository.findByEmail(user.getEmail()).ifPresent(verificationCodeRepository::delete);
+
+            // UserEntity 삭제 - JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
+            // (예약, 커뮤니티 게시글, 댓글, 건의 게시글, 건의 댓글, 알림 등)
+            userRepository.delete(user);
+
+            return ResponseEntity.ok(new ResponseDTO("회원탈퇴가 성공적으로 완료되었습니다."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
+    public ResponseEntity<ResponseDTO> verifyUserEmail(String tokenEmail, String inputEmail) {
+        try {
+            // 입력값 검증
+            if (inputEmail == null || inputEmail.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new ResponseDTO("이메일을 입력해주세요."));
+            }
+            
+            // 사용자가 입력한 이메일과 토큰의 이메일 비교
+            if (tokenEmail.equals(inputEmail.trim())) {
+                return ResponseEntity.ok(new ResponseDTO("사용자 이메일이 일치합니다."));
+            } else {
+                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 이메일이 일치하지 않습니다."));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDTO("이메일 검증 중 오류가 발생했습니다."));
         }
     }
 }

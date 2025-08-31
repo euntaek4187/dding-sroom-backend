@@ -58,7 +58,17 @@ public class SecurityConfig {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOrigins(
+                                Arrays.asList(
+                                        "http://localhost:3000",
+                                        "https://dding-sroom-frontend.vercel.app",
+                                        "https://ddingsroom.com",
+                                        "https://www.ddingsroom.com",
+                                        "https://dding-sroom-frontend-demo.vercel.app/",
+                                        "https://mju.ddingsroom.com",
+                                        "https://www.mju.ddingsroom.com"
+                                )
+                        );
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -82,9 +92,9 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/api/**", "/join", "/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
-                        .requestMatchers("/reissue", "/api/reservations/**").permitAll()
+                        .requestMatchers("/login","/logout", "/", "/join",  "/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/admin", "/admin/**").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
+                        .requestMatchers("/reissue", "/api/reservations/**", "/api/notification/**").permitAll()
                         .anyRequest().authenticated()); // 나머지는 그냥 다 로그인 해야 접근 가능하게
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         //JWTFilter 등록

@@ -6,6 +6,8 @@ import com.example.ddingsroom.suggest_post.dto.SuggestPostUpdateRequestDTO;
 import com.example.ddingsroom.suggest_post.entity.SuggestPostEntity;
 import com.example.ddingsroom.suggest_post.repository.SuggestPostRepository;
 import com.example.ddingsroom.suggest_post.util.SuggestPostCategory;
+import com.example.ddingsroom.user.entity.UserEntity;
+import com.example.ddingsroom.user.repository.UserRepository;
 import com.example.ddingsroom.suggest_post.util.SuggestPostLocation;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class SuggestPostSevice {
 
     private final SuggestPostRepository suggestPostRepository;
+    private final UserRepository userRepository;
 
     private int getCategoryValue(String categoryName) {
         SuggestPostCategory categoryEnum = SuggestPostCategory.fromName(categoryName);
@@ -48,8 +51,11 @@ public class SuggestPostSevice {
         int categoryValue = getCategoryValue(request.getCategory());
         int locationValue = getLocationValue(request.getLocation());
 
+        UserEntity user = userRepository.findById(authenticatedUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + authenticatedUserId));
+
         SuggestPostEntity newPost = new SuggestPostEntity(
-                authenticatedUserId,
+                user,
                 request.getSuggestTitle(),
                 request.getSuggestContent(),
                 categoryValue,
@@ -104,7 +110,7 @@ public class SuggestPostSevice {
         Specification<SuggestPostEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             suggestId.ifPresent(id -> predicates.add(cb.equal(root.get("id"), id)));
-            userId.ifPresent(id -> predicates.add(cb.equal(root.get("userId"), id)));
+            userId.ifPresent(id -> predicates.add(cb.equal(root.get("user").get("id"), id)));
             categoryValueOpt.ifPresent(catVal -> predicates.add(cb.equal(root.get("category"), catVal)));
             locationValueOpt.ifPresent(locVal -> predicates.add(cb.equal(root.get("location"), locVal)));
             isAnswered.ifPresent(answered -> predicates.add(cb.equal(root.get("isAnswered"), answered)));
@@ -115,5 +121,20 @@ public class SuggestPostSevice {
         return entities.stream()
                 .map(SuggestPostResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteAllUserSuggestPosts(Long userId) {
+        try {
+            suggestPostRepository.deleteByUserId(userId);
+        } catch (Exception e) {
+            throw new RuntimeException("사용자 건의 게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    // 사용자의 모든 건의 댓글 삭제
+    @Transactional  
+    public void deleteAllUserSuggestComments(Long userId) {
+        // UserEntity 삭제 시 JPA cascade를 통해 자동으로 삭제될거라 필요없어짐
     }
 }

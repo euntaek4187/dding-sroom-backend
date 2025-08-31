@@ -23,12 +23,9 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        System.out.println("JWTFilter: 필터 실행됨 (요청 URI: " + request.getRequestURI() + ")");
         String accessToken = request.getHeader("Authorization");
-        System.out.println("Access Token: " + accessToken);
 
         if (accessToken == null) {
-            System.out.println("JWTFilter: No access token found, skipping authentication");
             filterChain.doFilter(request, response);
             return;
         }
@@ -39,7 +36,6 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             jwtUtil.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
-            System.out.println("JWTFilter: Token expired");
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -48,7 +44,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String category = jwtUtil.getCategory(accessToken);
         if (!category.equals("access")) {
-            System.out.println("JWTFilter: Invalid access token");
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -58,10 +53,8 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰에서 모든 사용자 정보 추출
         String username = jwtUtil.getUsername(accessToken);
         String role = jwtUtil.getRole(accessToken);
-        int id = jwtUtil.getId(accessToken);
+        Long id = jwtUtil.getId(accessToken);
         String email = jwtUtil.getEmail(accessToken);
-
-        System.out.println("JWTFilter: Setting authentication for " + username + " with role " + role);
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(username);

@@ -2,6 +2,7 @@ package com.example.ddingsroom.suggest_post.entity;
 
 import com.example.ddingsroom.suggest_post_comment.entity.SuggestPostCommentEntity;
 import com.example.ddingsroom.suggest_post_image.entity.SuggestPostImageEntity;
+import com.example.ddingsroom.user.entity.UserEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -16,8 +17,9 @@ public class SuggestPostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     @Column(nullable = false, length = 255)
     private String suggestTitle;
@@ -50,8 +52,8 @@ public class SuggestPostEntity {
 
     }
 
-    public SuggestPostEntity(Long userId, String suggestTitle, String suggestContent, int category, int location) {
-        this.userId = userId;
+    public SuggestPostEntity(UserEntity user, String suggestTitle, String suggestContent, int category, int location) {
+        this.user = user;
         this.suggestTitle = suggestTitle;
         this.suggestContent = suggestContent;
         this.category = category;
@@ -77,11 +79,18 @@ public class SuggestPostEntity {
     }
 
     public Long getUserId(){
-        return this.userId;
+        return user != null ? user.getId() : null;
     }
 
     public void setUserId(Long userId){
-        this.userId = userId;
+    }
+
+    public UserEntity getUser(){
+        return this.user;
+    }
+
+    public void setUser(UserEntity user){
+        this.user = user;
     }
 
     public String getSuggestTitle(){
@@ -164,7 +173,7 @@ public class SuggestPostEntity {
     public String toString() {
         return "SuggestPost{"+
                 "id=" + id +
-                ", userId=" + userId +
+                ", userId=" + getUserId() +
                 ", suggestTitle=" + suggestTitle +
                 ", suggsetContent=" + suggestContent +
                 ", category=" + category +
