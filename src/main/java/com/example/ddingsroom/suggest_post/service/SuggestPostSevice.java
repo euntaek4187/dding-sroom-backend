@@ -110,7 +110,7 @@ public class SuggestPostSevice {
         Specification<SuggestPostEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             suggestId.ifPresent(id -> predicates.add(cb.equal(root.get("id"), id)));
-            userId.ifPresent(id -> predicates.add(cb.equal(root.get("userId"), id)));
+            userId.ifPresent(id -> predicates.add(cb.equal(root.get("user").get("id"), id)));
             categoryValueOpt.ifPresent(catVal -> predicates.add(cb.equal(root.get("category"), catVal)));
             locationValueOpt.ifPresent(locVal -> predicates.add(cb.equal(root.get("location"), locVal)));
             isAnswered.ifPresent(answered -> predicates.add(cb.equal(root.get("isAnswered"), answered)));
@@ -123,21 +123,18 @@ public class SuggestPostSevice {
                 .collect(Collectors.toList());
     }
 
-    // 사용자의 모든 건의 게시글 삭제 (JPA cascade로 댓글 자동 삭제)
     @Transactional
     public void deleteAllUserSuggestPosts(Long userId) {
         try {
-            // JPA cascade를 통해 관련된 모든 댓글이 자동으로 삭제됩니다
             suggestPostRepository.deleteByUserId(userId);
         } catch (Exception e) {
             throw new RuntimeException("사용자 건의 게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
-    // 사용자의 모든 건의 댓글 삭제 (JPA cascade로 자동 삭제됨)
+    // 사용자의 모든 건의 댓글 삭제
     @Transactional  
     public void deleteAllUserSuggestComments(Long userId) {
-        // 이 메서드는 더 이상 필요하지 않습니다.
-        // UserEntity 삭제 시 JPA cascade를 통해 자동으로 삭제됩니다.
+        // UserEntity 삭제 시 JPA cascade를 통해 자동으로 삭제될거라 필요없어짐
     }
 }

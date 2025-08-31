@@ -171,9 +171,7 @@ public class AdminUserService {
             
             UserEntity user = userOptional.get();
             String username = user.getUsername();
-            
-            // JPA cascade를 통해 관련된 모든 데이터가 자동으로 삭제됩니다
-            // (예약, 커뮤니티 게시글, 댓글, 건의 게시글, 건의 댓글, 알림 등)
+
             userRepository.delete(user);
             
             return ResponseEntity.ok(AdminResponseDTO.success(
