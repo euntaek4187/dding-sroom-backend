@@ -210,8 +210,8 @@ public class ReservationService {
         try {
             ReservationEntity reservation = reservationRepository.findById(requestDTO.getReservationId())
                     .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
-            
-            if (reservation.getUser().getId() != requestDTO.getUserId()) {
+
+            if (!reservation.getUser().getId().equals(requestDTO.getUserId())) {
                 return new BaseResponseDTO("본인의 예약만 취소할 수 있습니다.");
             }
             
