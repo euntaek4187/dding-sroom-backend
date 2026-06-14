@@ -4,6 +4,7 @@ import com.example.ddingsroom.community_post.dto.BaseResponseDTO;
 import com.example.ddingsroom.community_post.dto.CommunityPostRequestDTO;
 import com.example.ddingsroom.community_post.dto.CommunityPostResponseDTO;
 import com.example.ddingsroom.community_post.service.CommunityPostService;
+import com.example.ddingsroom.config.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,30 +17,35 @@ import java.util.Map;
 public class CommunityPostController {
 
     private final CommunityPostService service;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public CommunityPostController(CommunityPostService service) {
+    public CommunityPostController(CommunityPostService service, SecurityUtils securityUtils) {
         this.service = service;
+        this.securityUtils = securityUtils;
     }
 
     // 게시글 생성
     @PostMapping
     public ResponseEntity<BaseResponseDTO> createCommunityPost(@RequestBody CommunityPostRequestDTO dto) {
-        BaseResponseDTO response = service.createCommunityPost(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.createCommunityPost(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
     // 게시글 수정
     @PutMapping
     public ResponseEntity<BaseResponseDTO> updateCommunityPost(@RequestBody CommunityPostRequestDTO dto) {
-        BaseResponseDTO response = service.updateCommunityPost(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.updateCommunityPost(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
     // 게시글 삭제
     @DeleteMapping
     public ResponseEntity<BaseResponseDTO> deleteCommunityPost(@RequestBody CommunityPostRequestDTO dto) {
-        BaseResponseDTO response = service.deleteCommunityPost(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.deleteCommunityPost(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -65,6 +71,14 @@ public class CommunityPostController {
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponseDTO> getCommunityPost(@PathVariable Long id) {
         BaseResponseDTO response = service.getCommunityPost(id);
+        return ResponseEntity.ok(response);
+    }
+
+    // 내 게시글 조회 (토큰 기반, 선택적 카테고리 필터)
+    @GetMapping("/me")
+    public ResponseEntity<BaseResponseDTO> getMyPosts(@RequestParam(required = false) Integer category) {
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.getPostsByUserIdWithFilter(authenticatedUserId, category);
         return ResponseEntity.ok(response);
     }
     // CommunityPostController.java에 추가

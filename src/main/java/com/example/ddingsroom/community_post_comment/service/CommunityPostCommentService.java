@@ -35,10 +35,10 @@ public class CommunityPostCommentService {
     }
 
     // 댓글 또는 대댓글 생성
-    public BaseResponseDTO createComment(CommunityPostCommentRequestDTO dto) {
+    public BaseResponseDTO createComment(CommunityPostCommentRequestDTO dto, Long authenticatedUserId) {
         try {
-            // 사용자 존재 확인
-            UserEntity user = userRepository.findById(dto.getUserId()).orElse(null);
+            // 사용자 존재 확인 (신원은 토큰에서 파생)
+            UserEntity user = userRepository.findById(authenticatedUserId).orElse(null);
             if (user == null) {
                 return BaseResponseDTO.error("존재하지 않는 사용자입니다.");
             }
@@ -81,7 +81,7 @@ public class CommunityPostCommentService {
     }
 
     // 댓글 수정
-    public BaseResponseDTO updateComment(CommunityPostCommentRequestDTO dto) {
+    public BaseResponseDTO updateComment(CommunityPostCommentRequestDTO dto, Long authenticatedUserId) {
         try {
             Optional<CommunityPostCommentEntity> optional = repository.findById(dto.getCommentId());
             if (optional.isEmpty()) {
@@ -89,7 +89,7 @@ public class CommunityPostCommentService {
             }
 
             CommunityPostCommentEntity entity = optional.get();
-            if (!entity.getUserId().equals(dto.getUserId())) {
+            if (!entity.getUserId().equals(authenticatedUserId)) {
                 return BaseResponseDTO.error("작성자만 수정할 수 있습니다.");
             }
 
@@ -105,7 +105,7 @@ public class CommunityPostCommentService {
     }
 
     // 댓글 삭제 (대댓글이 있는 경우 확인)
-    public BaseResponseDTO deleteComment(CommunityPostCommentRequestDTO dto) {
+    public BaseResponseDTO deleteComment(CommunityPostCommentRequestDTO dto, Long authenticatedUserId) {
         try {
             Optional<CommunityPostCommentEntity> optional = repository.findById(dto.getCommentId());
             if (optional.isEmpty()) {
@@ -113,7 +113,7 @@ public class CommunityPostCommentService {
             }
 
             CommunityPostCommentEntity entity = optional.get();
-            if (!entity.getUserId().equals(dto.getUserId())) {
+            if (!entity.getUserId().equals(authenticatedUserId)) {
                 return BaseResponseDTO.error("작성자만 삭제할 수 있습니다.");
             }
 

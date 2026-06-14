@@ -3,6 +3,7 @@ package com.example.ddingsroom.community_post_comment.controller;
 import com.example.ddingsroom.community_post_comment.dto.BaseResponseDTO;
 import com.example.ddingsroom.community_post_comment.dto.CommunityPostCommentRequestDTO;
 import com.example.ddingsroom.community_post_comment.service.CommunityPostCommentService;
+import com.example.ddingsroom.config.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,28 +13,33 @@ import org.springframework.web.bind.annotation.*;
 public class CommunityPostCommentController {
 
     private final CommunityPostCommentService service;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public CommunityPostCommentController(CommunityPostCommentService service) {
+    public CommunityPostCommentController(CommunityPostCommentService service, SecurityUtils securityUtils) {
         this.service = service;
+        this.securityUtils = securityUtils;
     }
 
     // 기존 메서드들...
     @PostMapping
     public ResponseEntity<BaseResponseDTO> createComment(@RequestBody CommunityPostCommentRequestDTO dto) {
-        BaseResponseDTO response = service.createComment(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.createComment(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping
     public ResponseEntity<BaseResponseDTO> updateComment(@RequestBody CommunityPostCommentRequestDTO dto) {
-        BaseResponseDTO response = service.updateComment(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.updateComment(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping
     public ResponseEntity<BaseResponseDTO> deleteComment(@RequestBody CommunityPostCommentRequestDTO dto) {
-        BaseResponseDTO response = service.deleteComment(dto);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.deleteComment(dto, authenticatedUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -52,6 +58,17 @@ public class CommunityPostCommentController {
     @GetMapping("/{commentId}")
     public ResponseEntity<BaseResponseDTO> getComment(@PathVariable Long commentId) {
         BaseResponseDTO response = service.getComment(commentId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 내 댓글 조회 (토큰 기반, 댓글/대댓글 타입 + 특정 게시글 필터)
+    @GetMapping("/me")
+    public ResponseEntity<BaseResponseDTO> getMyComments(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Long postId
+    ) {
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        BaseResponseDTO response = service.getCommentsByUserId(authenticatedUserId, type, postId);
         return ResponseEntity.ok(response);
     }
 

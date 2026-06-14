@@ -13,8 +13,7 @@ public class CommunityPostRequestDTO {
     @JsonProperty("post_id")
     private Long postId;        // update, delete용
 
-    @JsonProperty("user_id")
-    private Long userId;
+    // user_id는 클라이언트가 보내지 않는다. 서버가 JWT 토큰에서 파생한다.
 
     @JsonProperty("title")
     private String title;

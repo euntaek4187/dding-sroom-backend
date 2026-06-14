@@ -5,6 +5,7 @@ import com.example.ddingsroom.reservation.dto.ReservationCancelRequestDTO;
 import com.example.ddingsroom.reservation.dto.ReservationRequestDTO;
 import com.example.ddingsroom.reservation.dto.ReservationResponseDTO;
 import com.example.ddingsroom.reservation.service.ReservationService;
+import com.example.ddingsroom.config.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,20 +19,24 @@ public class ReservationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
     private final ReservationService reservationService;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, SecurityUtils securityUtils) {
         this.reservationService = reservationService;
+        this.securityUtils = securityUtils;
     }
 
     @PostMapping
     public ResponseEntity<BaseResponseDTO> createReservation(@RequestBody ReservationRequestDTO requestDTO) {
-        logger.info("예약 생성 요청: roomId={}, startTime={}, endTime={}", 
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        logger.info("예약 생성 요청: userId={}, roomId={}, startTime={}, endTime={}",
+                authenticatedUserId,
                 requestDTO.getRoomId(),
-                requestDTO.getReservationStartTime(), 
+                requestDTO.getReservationStartTime(),
                 requestDTO.getReservationEndTime());
-        
-        BaseResponseDTO response = reservationService.createReservation(requestDTO);
+
+        BaseResponseDTO response = reservationService.createReservation(requestDTO, authenticatedUserId);
         
         if (response.getMessage().contains("불가능") || response.getMessage().contains("찾을 수 없습니다")) {
             logger.warn("예약 생성 실패: {}", response.getMessage());
@@ -44,9 +49,10 @@ public class ReservationController {
 
     @PostMapping("/cancel")
     public ResponseEntity<BaseResponseDTO> cancelReservation(@RequestBody ReservationCancelRequestDTO requestDTO) {
-        logger.info("예약 취소 요청: userId={}, reservationId={}", requestDTO.getUserId(), requestDTO.getReservationId());
-        
-        BaseResponseDTO response = reservationService.cancelReservation(requestDTO);
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        logger.info("예약 취소 요청: userId={}, reservationId={}", authenticatedUserId, requestDTO.getReservationId());
+
+        BaseResponseDTO response = reservationService.cancelReservation(requestDTO, authenticatedUserId);
         
         if (response.getMessage().contains("본인의 예약만") || response.getMessage().contains("이미 취소된") || 
             response.getMessage().contains("찾을 수 없습니다")) {
@@ -58,13 +64,14 @@ public class ReservationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ReservationResponseDTO> getUserReservations(@PathVariable Long userId) {
-        logger.info("사용자 예약 조회 요청: userId={}", userId);
-        
-        ReservationResponseDTO response = reservationService.getUserReservations(userId);
-        
-        logger.info("사용자 예약 조회 완료: count={}", 
+    @GetMapping("/me")
+    public ResponseEntity<ReservationResponseDTO> getMyReservations() {
+        Long authenticatedUserId = securityUtils.getAuthenticatedUserId();
+        logger.info("내 예약 조회 요청: userId={}", authenticatedUserId);
+
+        ReservationResponseDTO response = reservationService.getUserReservations(authenticatedUserId);
+
+        logger.info("내 예약 조회 완료: count={}",
                 response.getReservations() != null ? response.getReservations().size() : 0);
         return ResponseEntity.ok(response);
     }

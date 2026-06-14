@@ -6,13 +6,12 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ChangeUsernameDTO {
-    private Long userId;
+    // userId는 클라이언트가 보내지 않는다. 서버가 JWT 토큰에서 파생한다.
     private String newUsername;
 
     public ChangeUsernameDTO() {}
 
-    public ChangeUsernameDTO(Long userId, String newUsername) {
-        this.userId = userId;
+    public ChangeUsernameDTO(String newUsername) {
         this.newUsername = newUsername;
     }
 

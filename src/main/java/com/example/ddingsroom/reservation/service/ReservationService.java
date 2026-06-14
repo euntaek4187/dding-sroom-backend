@@ -44,14 +44,14 @@ public class ReservationService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public BaseResponseDTO createReservation(ReservationRequestDTO requestDTO) {
+    public BaseResponseDTO createReservation(ReservationRequestDTO requestDTO, Long authenticatedUserId) {
         try {
             UserEntity user;
             try {
-                user = userRepository.findById(requestDTO.getUserId())
+                user = userRepository.findById(authenticatedUserId)
                         .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
             } catch (EntityNotFoundException e) {
-                logger.warn("존재하지 않는 사용자 ID로 예약 시도: userId={}", requestDTO.getUserId());
+                logger.warn("존재하지 않는 사용자 ID로 예약 시도: userId={}", authenticatedUserId);
                 return new BaseResponseDTO("해당 사용자가 존재하지 않습니다.");
             }
             
@@ -206,12 +206,12 @@ public class ReservationService {
     }
     
     @Transactional
-    public BaseResponseDTO cancelReservation(ReservationCancelRequestDTO requestDTO) {
+    public BaseResponseDTO cancelReservation(ReservationCancelRequestDTO requestDTO, Long authenticatedUserId) {
         try {
             ReservationEntity reservation = reservationRepository.findById(requestDTO.getReservationId())
                     .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
-            if (!reservation.getUser().getId().equals(requestDTO.getUserId())) {
+            if (!reservation.getUser().getId().equals(authenticatedUserId)) {
                 return new BaseResponseDTO("본인의 예약만 취소할 수 있습니다.");
             }
             

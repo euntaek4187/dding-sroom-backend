@@ -8,6 +8,7 @@ import com.example.ddingsroom.user.repository.RefreshRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -92,6 +93,10 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
+                        // 토큰(로그인) 필수 — 본인 전용 엔드포인트. permitAll 보다 먼저 선언해야 우선 적용됨
+                        .requestMatchers("/user/mypage", "/user/change-username", "/user/withdraw", "/user/verify-email").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations", "/api/reservations/cancel").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/me").authenticated()
                         .requestMatchers("/login","/logout", "/", "/join",  "/user/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN") // /admin경로는 ADMIN이라는 역할을 가진 고객만 가능
                         .requestMatchers("/reissue", "/api/reservations/**", "/api/notification/**").permitAll()

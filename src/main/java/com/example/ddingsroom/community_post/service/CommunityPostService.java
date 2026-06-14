@@ -30,10 +30,10 @@ public class CommunityPostService {
     }
 
     // 게시글 생성
-    public BaseResponseDTO createCommunityPost(CommunityPostRequestDTO dto) {
+    public BaseResponseDTO createCommunityPost(CommunityPostRequestDTO dto, Long authenticatedUserId) {
         try {
-            // 사용자 존재 확인
-            UserEntity user = userRepository.findById(dto.getUserId())
+            // 사용자 존재 확인 (신원은 토큰에서 파생)
+            UserEntity user = userRepository.findById(authenticatedUserId)
                     .orElse(null);
             if (user == null) {
                 return BaseResponseDTO.error("존재하지 않는 사용자입니다.");
@@ -56,7 +56,7 @@ public class CommunityPostService {
     }
 
     // 게시글 수정
-    public BaseResponseDTO updateCommunityPost(CommunityPostRequestDTO dto) {
+    public BaseResponseDTO updateCommunityPost(CommunityPostRequestDTO dto, Long authenticatedUserId) {
         try {
             Optional<CommunityPostEntity> optional = repository.findById(dto.getPostId());
             if (optional.isEmpty()) {
@@ -64,7 +64,7 @@ public class CommunityPostService {
             }
 
             CommunityPostEntity entity = optional.get();
-            if (!entity.getUserId().equals(dto.getUserId())) {
+            if (!entity.getUserId().equals(authenticatedUserId)) {
                 return BaseResponseDTO.error("작성자만 수정할 수 있습니다.");
             }
 
@@ -84,7 +84,7 @@ public class CommunityPostService {
 
     // 게시글 삭제 (JPA cascade로 댓글 자동 삭제)
     @Transactional
-    public BaseResponseDTO deleteCommunityPost(CommunityPostRequestDTO dto) {
+    public BaseResponseDTO deleteCommunityPost(CommunityPostRequestDTO dto, Long authenticatedUserId) {
         try {
             Optional<CommunityPostEntity> optional = repository.findById(dto.getPostId());
             if (optional.isEmpty()) {
@@ -92,7 +92,7 @@ public class CommunityPostService {
             }
 
             CommunityPostEntity entity = optional.get();
-            if (!entity.getUserId().equals(dto.getUserId())) {
+            if (!entity.getUserId().equals(authenticatedUserId)) {
                 return BaseResponseDTO.error("작성자만 삭제할 수 있습니다.");
             }
 

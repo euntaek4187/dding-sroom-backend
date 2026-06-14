@@ -319,16 +319,13 @@ public class JoinService {
         }
     }
 
-    public ResponseEntity<ResponseDTO> changeUsername(com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
+    public ResponseEntity<ResponseDTO> changeUsername(Long authenticatedUserId, com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
         try {
-            if (changeUsernameDTO.getUserId() == null) {
-                return ResponseEntity.badRequest().body(new ResponseDTO("사용자 ID를 입력해주세요."));
-            }
             if (!StringUtils.hasText(changeUsernameDTO.getNewUsername())) {
                 return ResponseEntity.badRequest().body(new ResponseDTO("새 사용자명을 입력해주세요."));
             }
 
-            Optional<UserEntity> userEntityOptional = userRepository.findById(changeUsernameDTO.getUserId());
+            Optional<UserEntity> userEntityOptional = userRepository.findById(authenticatedUserId);
             if (userEntityOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ResponseDTO("해당 사용자를 찾을 수 없습니다."));

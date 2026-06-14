@@ -47,8 +47,13 @@ public class JoinController {
         return joinService.signUp(signUpDTO);
     }
 
-    @GetMapping("/mypage/{userId}")
-    public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
+    @GetMapping("/mypage")
+    public ResponseEntity<?> getMyPage() {
+        // 인증된 사용자 정보 추출 (신원은 토큰에서 파생)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserEntity().getId();
+
         return joinService.getMyPage(userId);
     }
 
@@ -59,7 +64,12 @@ public class JoinController {
   
     @PutMapping("/change-username")
     public ResponseEntity<ResponseDTO> changeUsername(@RequestBody com.example.ddingsroom.user.dto.ChangeUsernameDTO changeUsernameDTO) {
-        return joinService.changeUsername(changeUsernameDTO);
+        // 인증된 사용자 정보 추출 (신원은 토큰에서 파생)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserEntity().getId();
+
+        return joinService.changeUsername(userId, changeUsernameDTO);
     }
 
     @PostMapping("/verify-email")
