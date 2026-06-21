@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Component
@@ -39,6 +41,13 @@ public class JWTUtil {
 
     public Boolean isExpired(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+    }
+
+    // 토큰의 실제 만료시각 추출 (레거시 행 백필용). 만료/위조 토큰은 예외를 던진다.
+    public LocalDateTime getExpiration(String token) {
+        Date expiration = Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token).getPayload().getExpiration();
+        return LocalDateTime.ofInstant(expiration.toInstant(), ZoneId.of("Asia/Seoul"));
     }
 
     // 메소드 시그니처 변경: ID와 이메일 파라미터 추가

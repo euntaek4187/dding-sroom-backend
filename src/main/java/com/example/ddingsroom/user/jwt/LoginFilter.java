@@ -13,8 +13,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -78,12 +80,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     private void addRefreshEntity(String email, String refresh, Long expiredMs) {
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
+        LocalDateTime expirationAt = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(System.currentTimeMillis() + expiredMs), ZoneId.of("Asia/Seoul"));
 
         RefreshEntity refreshEntity = new RefreshEntity();
         refreshEntity.setUsername(email);
         refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
+        refreshEntity.setExpirationAt(expirationAt);
 
         refreshRepository.save(refreshEntity);
     }

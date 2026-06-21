@@ -13,7 +13,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Controller
 @ResponseBody
@@ -53,6 +55,8 @@ public class ReissueController {
         try {
             jwtUtil.isExpired(refresh);
         } catch (ExpiredJwtException e) {
+            // 만료된 refresh 토큰은 DB에서 즉시 제거 (잔류 방지)
+            refreshRepository.deleteByRefresh(refresh);
             //response status code
             return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
         }
@@ -104,12 +108,13 @@ public class ReissueController {
     }
 
     private void addRefreshEntity(String email, String refresh, Long expiredMs) {
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
+        LocalDateTime expirationAt = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(System.currentTimeMillis() + expiredMs), ZoneId.of("Asia/Seoul"));
 
         RefreshEntity refreshEntity = new RefreshEntity();
         refreshEntity.setUsername(email);
         refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
+        refreshEntity.setExpirationAt(expirationAt);
 
         refreshRepository.save(refreshEntity);
     }
